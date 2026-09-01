@@ -1,0 +1,15 @@
+{
+  "run_at_utc": "2026-09-01T14:22:03.020852+00:00",
+  "sources": [
+    "github",
+    "nvd"
+  ],
+  "target": {
+    "github": 120,
+    "nvd": 120
+  },
+  "taxonomy_version": "1.1",
+  "keyword_version": "1.1",
+  "vdp_enrichment_semantics": "CURRENT_SANITY_ONLY",
+  "note": "Partial Gate 2B batch. OpenAlex requires OPENALEX_API_KEY; patents require bulk data or existing PatentsView key. Historical folds must use point-in-time KEV/EPSS, not these current enriched values."
+}

@@ -1,0 +1,61 @@
+{
+  "n": 229,
+  "by_source": {
+    "open_source": 109,
+    "vulnerability": 120
+  },
+  "by_scope": {
+    "True": 198,
+    "False": 31
+  },
+  "by_confidence": {
+    "MEDIUM": 154,
+    "HIGH": 44,
+    "REJECT": 4,
+    "LOW": 27
+  },
+  "by_primary_family": {
+    "T01": 10,
+    "NONE": 31,
+    "T15": 4,
+    "T03": 13,
+    "T14": 1,
+    "T04": 14,
+    "T05": 9,
+    "T06": 5,
+    "T11": 2,
+    "T07": 6,
+    "T10": 6,
+    "T08": 3,
+    "T09": 3,
+    "T12": 2
+  },
+  "by_false_positive": {
+    "NONE": 78,
+    "OFFENSIVE_ONLY": 3,
+    "GENERIC_AI": 27,
+    "SECURITY_OF_AI": 1
+  },
+  "github_artifact_type": {
+    "offensive_tool": 7,
+    "tool_framework": 26,
+    "dataset_benchmark": 20,
+    "awesome_list_catalog": 21,
+    "ctf_demo": 2,
+    "production_platform": 26,
+    "paper_code": 6,
+    "tutorial_course": 1
+  },
+  "github_orientation": {
+    "DUAL_USE_DEFENSE_PRIMARY": 12,
+    "DEFENSIVE": 66,
+    "OFFENSIVE": 3,
+    "UNKNOWN": 28
+  },
+  "vdp_group": {
+    "W01": 40,
+    "W02": 35,
+    "W03": 25,
+    "W04": 20
+  }
+}
