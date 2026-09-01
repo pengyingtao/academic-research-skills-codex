@@ -1,0 +1,47 @@
+name: WP2 VDP History Tests
+
+on:
+  push:
+    paths:
+      - 'My_work/03_data/pilot/kev_history.py'
+      - 'My_work/03_data/pilot/materialize_vdp_at_cutoff.py'
+      - '.github/workflows/wp2-vdp-history-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Resolve exact 2026 KEV snapshot
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          from kev_history import resolve_kev_snapshot
+          s = resolve_kev_snapshot('2026-06-30')
+          print(s)
+          assert s.method == 'CISA_KEV_GIT_SNAPSHOT'
+          assert s.source_commit
+          assert s.source_commit_date[:10] <= '2026-06-30'
+          assert len(s.entries) > 1000
+          PY
+      - name: Resolve pre-mirror fallback explicitly
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          from kev_history import resolve_kev_snapshot
+          s = resolve_kev_snapshot('2025-12-31')
+          print(s.method, s.earliest_git_commit_date, len(s.entries), s.caveat)
+          assert s.method == 'CURRENT_CATALOG_DATEADDED_APPROX'
+          assert s.caveat
+          PY
