@@ -1,0 +1,113 @@
+name: WP2 Append Execution Log
+
+on:
+  push:
+    paths:
+      - '.github/workflows/wp2-append-log.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Append WP2 execution record
+        shell: bash
+        run: |
+          cat >> 'My_work/执行记录/执行日志.md' <<'EOF'
+
+---
+
+## 2026-09-01 — WP2 Gate 2B 扩容、OpenAlex 凭据检测与 Patent 公共 Bulk 路径
+
+**WP2 状态：IN_PROGRESS**
+
+**Gate 2B：IN_PROGRESS**
+
+### O/V 扩容启动
+
+在 140 GitHub + 140 VDP 正式历史子批次通过后，已启动扩容批次：
+
+- GitHub main target：450；
+- VDP target：500；
+- compact manual review queue target：300。
+
+GitHub 继续执行 `created_at <= 2026-06-30`，且 mutable popularity metrics 不作为历史特征。
+
+VDP 采样器已从普通 round-robin 修改为 **W01–W07 quota-balanced historical sampling**，并继续在多个 <=120-day NVD publication windows 中取样。此修订是为了修正前一批 W01/W02 过度代表、W04/W05 欠代表的问题。
+
+### OpenAlex 正式凭据检测
+
+已创建 credential-aware OpenAlex workflow，并实际执行检测。
+
+结果：
+
+`BLOCKED_CREDENTIAL`
+
+原因：仓库 Secret `OPENALEX_API_KEY` 当前未配置。
+
+工作流按设计跳过采集并写入：
+
+- `My_work/03_data/pilot/output/openalex_pilot_status.json`
+
+OpenAlex collector 本身已经 READY；一旦配置 key，可直接执行约 1000 条 Science-layer Pilot。完整 public snapshot 虽免费，但体量约数百 GB compressed，不适合在 GitHub Actions 中为本 Pilot 全量扫描。
+
+### Patent 路径重要修订
+
+进一步核验 PatentsView 官方代码示例后确认，其公开 S3 bulk 下载仍可直接访问，因此 Patent Pilot 不再视为必须等待 API key。
+
+正式公开数据入口：
+
+- `https://s3.amazonaws.com/data.patentsview.org/download/g_patent_abstract.tsv.zip`
+- `https://s3.amazonaws.com/data.patentsview.org/download/g_patent.tsv.zip`
+
+已新增：
+
+- `My_work/03_data/pilot/collect_patents_public_bulk.py`
+- `My_work/03_data/pilot/patent_bulk_input_contract.md`
+- `.github/workflows/wp2-patent-public-bulk.yml`
+
+新 Patent 方法：
+
+1. 下载 public PatentsView abstract + patent metadata bulk；
+2. 流式扫描 abstracts，不将全表载入内存；
+3. 同时要求 AI signal + T01–T15 capability signal；
+4. 每个技术族保留 deterministic low-hash candidate pool；
+5. 回连 `g_patent` 获取 title/date；
+6. 严格过滤 `patent_date <= 2026-06-30`；
+7. 输出约 500 条 `patent_candidates.jsonl`；
+8. 后续再做 semantic screening / claims-CPC enrichment。
+
+因此 Patent 当前状态从：
+
+`WAITING_FOR_BULK_INPUT_OR_EXISTING_KEY`
+
+调整为：
+
+`PUBLIC_BULK_PIPELINE_READY / EXECUTION_TRIGGERED`。
+
+### 当前剩余关键阻塞
+
+当前唯一明确的 Science-layer 外部凭据阻塞为 OpenAlex API key；Patent 已找到公开 bulk 替代路径。
+
+WP2 仍不得进入 DONE，直到：
+
+- O/V 扩容结果落库并审计；
+- Patent 500 条 public bulk Pilot 成功落库；
+- OpenAlex ~1000 条 Science Pilot 获得；
+- >=300 gold review 完成；
+- Precision / macro-F1 / high-frequency family F1 达到 Gate 2B 阈值。
+EOF
+      - name: Commit log
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 'My_work/执行记录/执行日志.md'
+          git commit -m 'WP2: log Gate 2B expansion and source-access changes'
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
