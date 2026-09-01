@@ -1,0 +1,37 @@
+{
+  "n": 109,
+  "in_scope": {
+    "False": 64,
+    "True": 45
+  },
+  "confidence": {
+    "REJECT": 47,
+    "MEDIUM": 15,
+    "LOW": 17,
+    "HIGH": 30
+  },
+  "false_positive_type": {
+    "NO_AI_SIGNAL": 44,
+    "OFFENSIVE_ONLY": 2,
+    "NONE": 45,
+    "GENERIC_AI": 17,
+    "SECURITY_OF_AI": 1
+  },
+  "primary_family": {
+    "NONE": 64,
+    "T15": 3,
+    "T01": 7,
+    "T03": 8,
+    "T14": 1,
+    "T04": 8,
+    "T05": 5,
+    "T06": 4,
+    "T11": 1,
+    "T07": 2,
+    "T10": 2,
+    "T08": 1,
+    "T09": 2,
+    "T12": 1
+  },
+  "note": "Re-screen of the persisted current-sanity GitHub batch using the post-2026-09-01 hard AI-anchor rule. This is diagnostic only, not Gate 2B formal-history data."
+}
