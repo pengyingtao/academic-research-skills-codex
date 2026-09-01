@@ -1,216 +1,304 @@
-# Experiment Matrix
+# Experiment Matrix V2
 
-## 1. 实验目标
+> WP1 Verdict：`MODIFY`。本矩阵据最终新颖性评估修订。
 
-建立从数据、任务、Baseline、主模型、回测、消融到2030情景推演的一致实验矩阵，使不同方法在相同数据切分、标签定义与评价指标下可公平比较。
+## 1. 实验总目标
 
-## 2. 数据窗口
+验证 ECDS-TF 是否能在严格 temporal freeze 下：
 
-- 历史观测：2012Q1–2026Q2
-- 时间粒度：Quarter
-- 最终推演：2026Q3–2030Q4
+1. 预测 Technology Growth；
+2. 识别 Emerging Technologies；
+3. 预测 Technology Convergence；
+4. 输出校准概率与可靠不确定性；
+5. 将 learned dynamics 转换为可干预 2030 forward simulation；
+6. 证明 VDP 相较 raw CVE count 的增量价值；
+7. 使用 MAST 做未来情景压力测试，而非历史预测主模型。
+
+---
+
+## 2. 数据状态
+
+统一季度状态：
+
+\[
+X_{k,t}=[S_{k,t},T_{k,t},O_{k,t},VDP_{k,t}]
+\]
+
+### VDP 候选字段
+
+- CVE count
+- CWE composition
+- CVSS / severity
+- KEV count/share
+- EPSS / LEV / exploitability proxy
+- affected product / ecosystem exposure
+- disclosure-to-exploit lag
+- disclosure/exploit-to-remediation lag
+
+---
 
 ## 3. 预测任务
 
-| Task | 目标 | Horizon | 主指标 |
+| Task | Target | Horizon | Core Metrics |
 |---|---|---|---|
-| A Growth | 技术增长预测 | 4/8/12季度 | MAE, RMSE, sMAPE |
-| B Emerging | 新兴技术识别/排序 | 4/8/12季度 | Precision@K, Recall@K, NDCG@K, AUPRC |
-| C Convergence | 技术融合预测 | 4/8/12季度 | AUC, F1, Hits@K |
+| A Growth | technology growth/value change | 4/8/12 quarters | MAE, RMSE, sMAPE |
+| B Emerging | future high-growth/emergence label/rank | 4/8/12 quarters | Precision@K, Recall@K, NDCG@K, AUPRC |
+| C Convergence | future technology pair relation/link | 4/8/12 quarters | AUC, F1, Hits@K |
 
-## 4. 回测折叠
+---
 
-| Fold | Train End | Forecast Window | 用途 |
+## 4. Historical Reconstruction Folds
+
+| Fold | Train | Forecast | Purpose |
 |---|---|---|---|
-| F1 | 2018Q4 | 2019Q1–2021Q4 | 早期历史回测 |
-| F2 | 2020Q4 | 2021Q1–2023Q4 | 中期历史回测 |
-| F3 | 2022Q4 | 2023Q1–2025Q4 | 近期历史回测 |
+| F1 | 2012–2018 | 2019–2021 | earlier-cycle reconstruction |
+| F2 | 2012–2020 | 2021–2023 | mid-cycle reconstruction |
+| F3 | 2012–2022 | 2023–2025 | frontier-era reconstruction |
 
-说明：具体训练起点统一为2012Q1；后续可追加 rolling-origin folds。
+Supplementary：rolling-origin evaluation。
 
-## 5. 方法矩阵
+### Temporal Freeze Audit
 
-| ID | 类别 | 方法 | Task A | Task B | Task C | 是否正式Baseline |
-|---|---|---|---:|---:|---:|---:|
-| B00 | Naive | Persistence | ✓ | ✓ | 视定义 | ✓ |
-| B01 | Naive | Linear Trend | ✓ | ✓ | × | ✓ |
-| B02 | Statistical | ARIMA | ✓ | ✓ | × | ✓ |
-| B03 | Statistical | Prophet | ✓ | ✓ | × | 可选 |
-| B04 | Diffusion | Bass/S-curve | ✓ | ✓ | × | 条件适用 |
-| B05 | ML | XGBoost | ✓ | ✓ | 可扩展 | ✓ |
-| B06 | Sequence | LSTM | ✓ | ✓ | 可扩展 | ✓ |
-| B07 | Graph | GCN | 可扩展 | ✓ | ✓ | ✓ |
-| B08 | Heterogeneous Graph | R-GCN | 可扩展 | ✓ | ✓ | ✓ |
-| B09 | Temporal Graph | TGAT | ✓ | ✓ | ✓ | ✓ |
-| B10 | Temporal Graph | TGN | ✓ | ✓ | ✓ | ✓ |
-| B11 | Agent Simulation | ABM-R | ✓ | ✓ | ✓ | ✓ |
-| B12 | Calibrated Agent Simulation | ABM-C | ✓ | ✓ | ✓ | ✓ |
-| P00 | Proposed | ECDS-v0 | ✓ | ✓ | 可扩展 | 否 |
-| P01 | Proposed | ECDS-v1 | ✓ | ✓ | 可扩展 | 否 |
-| P02 | Proposed | ECDS-TF | ✓ | ✓ | ✓ | 主模型 |
-| X01 | Exploratory | MAF-TF | 未来情景 | 未来情景 | 未来情景 | 否 |
+每 fold 记录：
 
-## 6. 主模型递进设计
+- data snapshot cutoff；
+- citation cutoff；
+- GitHub activity cutoff；
+- CVE/KEV status cutoff；
+- normalization fit range；
+- taxonomy version；
+- embedding/LLM contamination note。
 
-### P00 ECDS-v0
+---
 
-Evidence-Calibrated State Transition，不含图与Lead-Lag。
+## 5. Baseline Matrix V2
 
-目标：验证“从历史数据校准动态状态转移”是否本身有效。
+| Family | Model | Task A | Task B | Task C | Scenario | Role |
+|---|---|---:|---:|---:|---:|---|
+| Naive | Persistence | ✓ | △ | × | × | minimum baseline |
+| Naive | Linear Trend | ✓ | △ | × | × | trend baseline |
+| Statistical | ARIMA | ✓ | △ | × | × | time-series baseline |
+| Statistical | Prophet | ✓ | △ | × | × | trend/seasonality |
+| Diffusion | Bass / S-curve | ✓ | △ | × | △ | diffusion baseline |
+| ML | XGBoost | ✓ | ✓ | △ | × | tabular predictive baseline |
+| DL | LSTM | ✓ | ✓ | △ | × | temporal baseline |
+| Graph | GCN | △ | ✓ | ✓ | × | static relation baseline |
+| Graph | R-GCN | △ | ✓ | ✓ | × | heterogeneous relation baseline |
+| Temporal Graph | TGAT | △ | ✓ | ✓ | × | temporal graph baseline |
+| Temporal Graph | TGN | △ | ✓ | ✓ | × | temporal graph baseline |
+| Agent | ABM-R | ✓ | ✓ | △ | ✓ | rule-based simulation baseline |
+| Agent | ABM-C | ✓ | ✓ | △ | ✓ | calibrated simulation baseline |
+| Proposed | ECDS-v0 | ✓ | ✓ | △ | ✓ | calibrated state transition |
+| Proposed | ECDS-v1 | ✓ | ✓ | △ | ✓ | + timing/lag representation |
+| Proposed | ECDS-TF | ✓ | ✓ | ✓ | ✓ | full framework |
+| Supplementary | AgentProphet-style history-only/anonymized | ×/△ | ✓ | × | × | recent agentic forecasting comparator |
+| Stress Test | MAST | × | × | × | ✓ | future scenario critique only |
 
-### P01 ECDS-v1
+---
 
-ECDS-v0 + 跨源 Lead-Lag。
+## 6. ECDS 渐进实现
 
-目标：验证 STOV 不同数据源的时滞信息是否带来增益。
+### ECDS-v0
 
-### P02 ECDS-TF
+无图版本：
 
-ECDS-v1 + Temporal Heterogeneous Graph。
+\[
+X_{t+1}=F_\theta(X_t,Z_t)+\epsilon_t
+\]
 
-目标：验证技术之间及多类实体之间动态关系是否进一步提高增长、涌现与融合预测能力。
+目的：验证 evidence-calibrated state transition 本身是否有效。
 
-## 7. 消融矩阵
+### ECDS-v1
 
-| Ablation | Science | Patent | GitHub | Vulnerability | Lead-Lag | Graph | Calibration |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Full | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| w/o Science | × | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| w/o Patent | ✓ | × | ✓ | ✓ | ✓ | ✓ | ✓ |
-| w/o GitHub | ✓ | ✓ | × | ✓ | ✓ | ✓ | ✓ |
-| w/o Vulnerability | ✓ | ✓ | ✓ | × | ✓ | ✓ | ✓ |
-| w/o Lead-Lag | ✓ | ✓ | ✓ | ✓ | × | ✓ | ✓ |
-| w/o Graph | ✓ | ✓ | ✓ | ✓ | ✓ | × | ✓ |
-| w/o Calibration | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | × |
+加入 cross-source timing / lag 表示。
 
-## 8. 数据表示
+目的：检验异步信息是否有边际增益，而不将 Lead-Lag 本身作为创新主张。
 
-统一最小表：Technology × Quarter。
+### ECDS-TF
 
-主要字段族：
+加入 relational temporal/heterogeneous graph encoder：
 
-### Science
-- paper_count
-- paper_growth
-- citation_growth
-- novelty
-- interdisciplinary_score
+\[
+H_t=GraphEncoder(G_{1:t})
+\]
 
-### Patent
-- patent_count
-- patent_growth
-- cpc_diversity
-- assignee_diversity
-- patent_citation_growth
+\[
+X_{t+1}=F_\theta(X_t,H_t,Z_t)+\epsilon_t
+\]
 
-### Open Source
-- repo_count
-- repo_growth
-- stars_growth
-- commit_growth
-- contributor_growth
-- release_growth
+随后执行 probabilistic rollout 和 intervention。
 
-### Vulnerability
-- cve_count
-- cve_growth
-- cvss_mean
-- high_critical_ratio
-- kev_count
-- cwe_diversity
+---
 
-### Graph/Structural
-- centrality
-- community
-- convergence_score
-- neighborhood_growth
-- source_diffusion_entropy
+## 7. VDP 专项实验
 
-## 9. 标签定义待办
+### VDP-0
 
-以下标签必须在 WP1/WP2 后正式冻结：
+`raw CVE count`
 
-1. Growth target 的归一化与极端值处理；
-2. Emerging Technology 的阈值/排名定义；
-3. Convergence edge 的生成标准；
-4. 技术类别最小数据支持量；
-5. 冷启动 Technology 的处理方式。
+### VDP-1
 
-禁止根据最终测试集结果反复调整阈值；阈值选择必须在训练/验证窗口完成并记录。
+`CVE + Severity`
 
-## 10. 模型选择与超参数规则
+### VDP-2
 
-1. 所有模型共享相同 temporal split；
-2. 超参数仅使用训练集或训练集内部验证窗口选择；
-3. 不使用未来窗口做 early stopping；
-4. 报告随机种子；
-5. 随机模型至少重复 5 次，资源允许时 10 次；
-6. 报告 mean ± std；
-7. 记录依赖版本、硬件和运行时间。
+`CVE + Severity + KEV/Exploitability`
 
-## 11. 统计比较
+### VDP-Full
 
-计划采用：
+`CVE + KEV + Severity + Exploitability + Exposure + RemediationGap`
 
-- Across-fold paired comparison
-- Bootstrap confidence interval
-- Effect size
-- 必要时多重比较校正
+### 比较问题
 
-最终检验方法根据数据分布和独立性条件确定，不预先强制使用不适合的参数检验。
+1. VDP-Full 是否显著优于 raw CVE？
+2. 哪些技术族从 VDP 获益最大？
+3. VDP 是否提供提前 1–8 个季度的防御技术增长信号？
+4. VDP 是否提高 calibration，而不仅提高平均 accuracy？
 
-## 12. ABM Baseline 规则
+---
 
-### ABM-R
+## 8. 消融矩阵
 
-参数来源：文献、规则或公开专家知识；完整记录规则表和参数来源。
+| Ablation | Purpose |
+|---|---|
+| w/o Science | 科学知识通道价值 |
+| w/o Patent | 技术化通道价值 |
+| w/o GitHub | 工程扩散通道价值 |
+| w/o VDP | 安全需求压力价值 |
+| VDP→raw CVE | exploitation-weighted demand 是否必要 |
+| VDP w/o KEV/EPSS/LEV | 实际利用权重价值 |
+| w/o Lag Representation | 异步信息价值 |
+| w/o Graph Encoder | 关系学习价值 |
+| w/o Calibration | 数据估参价值 |
+| Deterministic rollout | 概率推演价值 |
+| w/o intervention layer | “forecast”与“foresight simulation”的差异 |
 
-### ABM-C
+---
 
-保持尽可能相同的 Agent 结构，仅将核心增长、扩散、需求响应和融合参数改由历史 STOV 数据校准。
+## 9. Reliability Evaluation
 
-ABM-R vs ABM-C 用于独立识别 Evidence Calibration 的贡献。
+### Point / Ranking
 
-## 13. MAF-TF 规则
+- MAE
+- RMSE
+- sMAPE
+- Precision@K
+- Recall@K
+- NDCG@K
+- AUPRC
+- AUC
+- F1
+- Hits@K
 
-MAF-TF 不进入 F1/F2/F3 正式性能排行榜，主要原因是 LLM 训练语料可能包含历史预测窗口之后的信息，存在 Future Leakage。
+### Probability Calibration
 
-仅用于 2027–2030 prospective foresight：
+- Brier Score
+- ECE（适用时）
+- reliability diagram
 
-- Scientist Agent
-- Industry Agent
-- Open-source Agent
-- Cyber Defender Agent
-- Technology Analyst Agent
+### Interval Reliability
 
-比较 ECDS-TF 与 MAF-TF 排名和观点一致性：Spearman rho、Kendall tau、Jaccard@K 等。
+- empirical coverage
+- mean interval width
+- sharpness
 
-## 14. 2030 情景矩阵
+### Scenario Reliability
 
-| Scenario | 核心冲击 | 主要调整参数 |
+- sensitivity to shock magnitude
+- rank stability
+- trajectory stability
+- seed sensitivity / Monte Carlo convergence
+
+---
+
+## 10. AgentProphet-style 补充对照
+
+仅针对 Task B。
+
+### 原则
+
+- 优先采用匿名技术 ID；
+- 输入 history-only numeric/source-profile records；
+- 不提供未来名称和未来事件；
+- 明确披露 LLM 训练语料带来的潜在 contamination；
+- 若无法严格复现 AgentProphet 公开设置，则只做 supplementary comparison，不进入主结论统计显著性比较。
+
+---
+
+## 11. 2030 Intervention Matrix
+
+| Scenario | Intervention | Main Question |
 |---|---|---|
-| S0 Baseline | 当前趋势延续 | 基准 |
-| S1 AI Acceleration | AI模型/Agent能力加速 | AI capability / transition rate ↑ |
-| S2 Threat Shock | 漏洞与攻击压力增加 | vulnerability demand ↑ |
-| S3 OSS Acceleration | 开源生态加速 | OSS diffusion ↑ |
-| S4 Constraint | 监管/成本/治理约束 | adoption / diffusion ↓ |
+| S0 Baseline | no structural shock | current dynamics continuation |
+| S1 AI Acceleration | increase AI capability/productivity parameters | 哪些防御技术最受AI能力跃迁驱动？ |
+| S2 Threat/VDP Shock | raise exploitability/KEV/remediation pressure | 哪些技术被安全需求快速牵引？ |
+| S3 OSS Acceleration | increase OSS diffusion/adoption | 开源是否压缩科学到工程化时滞？ |
+| S4 Constraint | regulation/liability/compute/adoption friction | 哪些技术路线最脆弱？ |
 
-每个情景目标 Monte Carlo N=1000；输出概率分布、95%区间和技术排序，而非单点结论。
+每情景：Monte Carlo N≥1000。
 
-## 15. 实验成功判据
+---
 
-WP0 阶段不预设“主模型必须显著获胜”。成功标准是：
+## 12. MAST — Multi-Agent Scenario Stress Test
 
-1. 所有方法在同一数据口径下可复现；
-2. temporal leakage 得到严格控制；
-3. 至少三轮历史回测完成；
-4. 能区分 Calibration、Lead-Lag、Graph、多源数据各自的边际贡献；
-5. 若 ECDS-TF 未优于强基线，结果仍如实报告并重新评估方法假设。
+### 输入
 
-## 16. 当前状态
+- ECDS-TF scenario trajectories；
+- uncertainty intervals；
+- technology rankings；
+- explicit scenario assumptions。
 
-Version: experiment_matrix_v1
+### Agent Roles
 
-Status: WP0 FROZEN FOR WP1
+- Research Analyst
+- Industry Adoption Analyst
+- OSS Ecosystem Analyst
+- Cyber Threat/Defense Analyst
+- Regulation/Governance Analyst
+- Adversarial Synthesizer
 
-允许在 WP1 文献检索和 WP2 Pilot Taxonomy 后进行有理由的协议修订，但必须保留版本记录，禁止结果导向修改。
+### 输出
+
+- missing assumptions
+- failure modes
+- counterexamples
+- tail risks
+- adoption barriers
+- scenario narratives
+
+MAST 不输出用于主排行榜的历史准确率。
+
+---
+
+## 13. Decision Gates
+
+### Gate 1 — Pilot Taxonomy
+
+若跨源 Technology Entity 映射质量不足，则停止大规模采集。
+
+### Gate 2 — Predictive Signal
+
+若简单 baseline 均无法得到稳定信号，暂停复杂 ECDS-TF 开发并重新审视目标标签。
+
+### Gate 3 — VDP Value
+
+若 VDP-Full 对 raw CVE 无稳定增益：
+
+- 将 VDP 从核心贡献降级为领域特征；
+- 不通过调参强行制造贡献。
+
+### Gate 4 — Graph Value
+
+若 graph encoder 无稳定增益，ECDS-TF 可退化为非图动态状态模型。
+
+### Gate 5 — Historical Reliability
+
+若历史重演失败，则不发布确定性 2030 技术排名，只保留探索性 scenario findings。
+
+---
+
+## 14. 当前状态
+
+- WP0 V2：本矩阵已更新；
+- WP1：等待执行日志正式关闭；
+- 下一阶段：WP2 taxonomy + Pilot Corpus。
