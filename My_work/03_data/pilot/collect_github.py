@@ -49,13 +49,16 @@ def artifact_type(repo: dict[str, Any], readme: str) -> str:
     return "tool_framework"
 
 
-def fetch_family(family: str, terms: list[str], limit: int) -> list[dict[str, Any]]:
+def fetch_family(family: str, terms: list[str], limit: int, cutoff: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     for term in terms:
         if len(rows) >= limit:
             break
-        q = f'"{term}" cybersecurity in:name,description,readme archived:false fork:false'
+        # Formal historical Pilot excludes repositories created after the frozen
+        # observation window. Mutable metrics are still current-as-observed and
+        # therefore MUST be rematerialized point-in-time for historical folds.
+        q = f'"{term}" cybersecurity in:name,description,readme archived:false fork:false created:<={cutoff}'
         data = request_json("GET", SEARCH_API, headers=headers(), params={"q": q, "sort": "updated", "order": "desc", "per_page": min(30, limit - len(rows))}, min_interval=2.1)
         for item in data.get("items", []):
             full_name = item.get("full_name")
@@ -63,6 +66,9 @@ def fetch_family(family: str, terms: list[str], limit: int) -> list[dict[str, An
                 continue
             seen.add(full_name)
             repo = request_json("GET", REPO_API.format(full_name=full_name), headers=headers(), min_interval=0.35)
+            created = (repo.get("created_at") or "")[:10]
+            if created and created > cutoff:
+                continue
             readme = fetch_readme(full_name)
             rec = base_record("open_source", full_name, title=full_name, text=(repo.get("description") or "") + "\n" + readme, query_id=f"GH-{family}")
             rec.update({
@@ -83,6 +89,8 @@ def fetch_family(family: str, terms: list[str], limit: int) -> list[dict[str, An
                 "commit_activity_as_observed": None,
                 "candidate_family": family,
                 "candidate_term": term,
+                "formal_created_cutoff": cutoff,
+                "mutable_metrics_semantics": "CURRENT_AS_OBSERVED_NOT_HISTORICAL",
             })
             rows.append(rec)
             if len(rows) >= limit:
@@ -94,17 +102,19 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-family", type=int, default=40)
     ap.add_argument("--max-total", type=int, default=500)
+    ap.add_argument("--cutoff", default=None, help="Repository creation cutoff YYYY-MM-DD; defaults to query-pack window end")
     args = ap.parse_args()
     q = load_queries()
+    cutoff = args.cutoff or q["window"]["to"]
     rows: list[dict[str, Any]] = []
     for family, cfg in q["families"].items():
         remaining = args.max_total - len(rows)
         if remaining <= 0:
             break
-        rows.extend(fetch_family(family, cfg["terms"], min(args.per_family, remaining)))
+        rows.extend(fetch_family(family, cfg["terms"], min(args.per_family, remaining), cutoff))
     dedup = {r["repository_full_name"]: r for r in rows}
     n = write_jsonl(OUT_DIR / "github_candidates.jsonl", dedup.values())
-    print(f"wrote {n} GitHub candidates")
+    print(f"wrote {n} GitHub candidates with created_at <= {cutoff}")
 
 
 if __name__ == "__main__":
