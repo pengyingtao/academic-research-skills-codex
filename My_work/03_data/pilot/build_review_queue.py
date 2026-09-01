@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import random
 from pathlib import Path
@@ -14,6 +15,36 @@ def load(path: Path):
 
 def key(row):
     return (row.get("source_type"), row.get("source_native_id"))
+
+
+def compact(row: dict, reasons: list[str]) -> dict:
+    evidence = (row.get("text_evidence") or "").replace("\n", " ").strip()
+    return {
+        "source_type": row.get("source_type"),
+        "source_native_id": row.get("source_native_id"),
+        "event_date": row.get("event_date"),
+        "title_or_name": row.get("title_or_name"),
+        "evidence_excerpt": evidence[:1200],
+        "candidate_family": row.get("candidate_family"),
+        "auto_in_scope": row.get("in_scope"),
+        "auto_primary_technology_id": row.get("primary_technology_id"),
+        "auto_secondary_technology_ids": row.get("secondary_technology_ids") or [],
+        "auto_use_orientation": row.get("use_orientation"),
+        "auto_false_positive_type": row.get("false_positive_type"),
+        "auto_confidence": row.get("confidence"),
+        "artifact_type": row.get("artifact_type"),
+        "analysis_role": row.get("analysis_role"),
+        "cwe_group": row.get("cwe_group"),
+        "review_sampling_reason": reasons,
+        "gold_in_scope": None,
+        "gold_primary_technology_id": None,
+        "gold_secondary_technology_ids": [],
+        "gold_use_orientation": None,
+        "gold_false_positive_type": None,
+        "gold_artifact_type": None,
+        "gold_vdp_group": None,
+        "reviewer_note": None,
+    }
 
 
 def main() -> None:
@@ -38,37 +69,40 @@ def main() -> None:
         ("dual_use_offensive", offensive, 25),
         ("vdp_mapping", vuln, 25),
     ]
-    selected = {}
-    reason_map = {}
+    selected: dict[tuple, dict] = {}
+    reason_map: dict[tuple, list[str]] = {}
     for reason, pool, target in plan:
         pool = list(pool)
         rng.shuffle(pool)
         for r in pool[:target]:
-            selected[key(r)] = dict(r)
+            selected[key(r)] = r
             reason_map.setdefault(key(r), []).append(reason)
 
-    if len(selected) < min(args.n, len(rows)):
+    target_n = min(args.n, len(rows))
+    if len(selected) < target_n:
         remaining = [r for r in rows if key(r) not in selected]
         rng.shuffle(remaining)
         for r in remaining:
-            if len(selected) >= min(args.n, len(rows)):
+            if len(selected) >= target_n:
                 break
-            selected[key(r)] = dict(r)
+            selected[key(r)] = r
             reason_map.setdefault(key(r), []).append("top_up")
 
-    out = []
-    for k, r in selected.items():
-        r["review_sampling_reason"] = reason_map[k]
-        r["gold_in_scope"] = None
-        r["gold_primary_technology_id"] = None
-        r["gold_secondary_technology_ids"] = []
-        r["gold_use_orientation"] = None
-        r["gold_false_positive_type"] = None
-        r["reviewer_note"] = None
-        out.append(r)
+    out = [compact(r, reason_map[k]) for k, r in selected.items()]
+    n = write_jsonl(OUT_DIR / "manual_review_queue_compact.jsonl", out)
 
-    n = write_jsonl(OUT_DIR / "manual_review_queue.jsonl", out)
-    print(f"wrote {n} review records")
+    csv_path = OUT_DIR / "manual_review_queue_compact.csv"
+    if out:
+        fields = list(out[0].keys())
+        with csv_path.open("w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            for row in out:
+                csv_row = dict(row)
+                for field in ["auto_secondary_technology_ids", "review_sampling_reason", "gold_secondary_technology_ids"]:
+                    csv_row[field] = json.dumps(csv_row[field], ensure_ascii=False)
+                w.writerow(csv_row)
+    print(f"wrote {n} compact review records")
 
 
 if __name__ == "__main__":
