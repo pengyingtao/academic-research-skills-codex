@@ -1,20 +1,21 @@
 {
-  "run_at_utc": "2026-09-01T14:58:36.486632+00:00",
+  "run_at_utc": "2026-09-01T15:51:51.199713+00:00",
   "sources": [
     "github",
     "nvd"
   ],
-  "mode": "FORMAL_PARTIAL_HISTORICAL_PILOT_HARDENED",
+  "mode": "FORMAL_EXPANDED_HISTORICAL_PILOT",
   "research_cutoff": "2026-06-30",
   "target": {
-    "github_main": 140,
-    "nvd": 140,
-    "github_auxiliary_cap": 60
+    "github_main": 450,
+    "nvd": 500,
+    "github_auxiliary_cap": 100,
+    "review_queue": 300
   },
   "taxonomy_version": "1.1",
   "keyword_version": "1.1",
   "github_rule": "family capability term x AI search anchor; semantic hard AI gate; created_at <= 2026-06-30; mutable popularity metrics excluded from historical feature claims",
-  "nvd_rule": "deterministic <=120-day publication windows spanning 2012Q1-2026Q2",
-  "vdp_materialization": "CISA kev-data Git snapshot when cutoff is covered by mirror history; explicitly flagged dateAdded approximation before mirror history; EPSS(date=cutoff) when structurally available",
-  "note": "Hardened GitHub+VDP sub-batch for Gate 2B. Full Gate still requires OpenAlex and Patent supply plus >=300 finalized gold-reviewed records."
+  "nvd_rule": "quota-balanced W01-W07 sampling across deterministic <=120-day publication windows spanning 2012Q1-2026Q2",
+  "vdp_materialization": "point-in-time KEV/EPSS at 2026-06-30 with explicit historical semantics",
+  "note": "Expanded O/V Gate 2B batch. Full Gate still requires OpenAlex and Patent supply and completion of gold labels/metrics."
 }
