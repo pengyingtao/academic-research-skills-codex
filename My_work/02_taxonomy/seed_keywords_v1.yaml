@@ -1,0 +1,235 @@
+version: "1.0"
+status: "PILOT"
+updated: "2026-09-01"
+
+common_ai_terms:
+  - artificial intelligence
+  - machine learning
+  - deep learning
+  - neural network
+  - transformer
+  - large language model
+  - LLM
+  - generative AI
+  - foundation model
+  - reinforcement learning
+  - graph neural network
+  - anomaly detection
+  - autonomous agent
+  - AI agent
+  - multi-agent
+
+technology_seeds:
+  T01:
+    positive:
+      - vulnerability detection
+      - vulnerability discovery
+      - vulnerability localization
+      - vulnerability classification
+      - AI fuzzing
+      - intelligent fuzzing
+      - automated vulnerability analysis
+      - exploitability prediction
+      - vulnerability prioritization
+      - binary vulnerability
+      - source code vulnerability
+      - LLM vulnerability analysis
+    negative:
+      - model vulnerability
+      - adversarial example
+
+  T02:
+    positive:
+      - automated program repair
+      - automated patch generation
+      - vulnerability repair
+      - security patch generation
+      - patch validation
+      - patch correctness
+      - automated remediation
+      - virtual patching
+      - LLM code repair
+
+  T03:
+    positive:
+      - malware detection
+      - malware classification
+      - malware analysis
+      - ransomware detection
+      - malicious code detection
+      - malware family
+      - malware reverse engineering
+      - behavioral malware
+
+  T04:
+    positive:
+      - intrusion detection
+      - network anomaly detection
+      - network traffic anomaly
+      - lateral movement detection
+      - user behavior analytics
+      - UEBA
+      - encrypted traffic classification
+      - NIDS
+      - HIDS
+
+  T05:
+    positive:
+      - phishing detection
+      - spear phishing detection
+      - malicious URL detection
+      - malicious domain detection
+      - business email compromise
+      - social engineering detection
+      - impersonation detection
+      - deepfake detection
+      - fraud detection
+
+  T06:
+    positive:
+      - botnet detection
+      - DDoS detection
+      - denial of service detection
+      - bot detection
+      - malicious infrastructure
+      - command and control detection
+      - C2 detection
+
+  T07:
+    positive:
+      - cyber threat intelligence
+      - threat intelligence
+      - CTI
+      - indicator of compromise extraction
+      - IOC extraction
+      - TTP extraction
+      - threat knowledge graph
+      - threat actor attribution
+      - campaign attribution
+      - cyber threat forecasting
+      - cyber early warning
+
+  T08:
+    positive:
+      - threat hunting
+      - cyber threat hunting
+      - hunt hypothesis
+      - security investigation
+      - attack chain reconstruction
+      - telemetry correlation
+      - autonomous investigation
+
+  T09:
+    positive:
+      - security copilot
+      - SOC copilot
+      - SOC agent
+      - security operations agent
+      - autonomous SOC
+      - AI SOC
+      - alert triage
+      - security analyst assistant
+      - multi-agent cyber defense
+      - human AI SOC
+
+  T10:
+    positive:
+      - incident response automation
+      - automated incident response
+      - security orchestration
+      - SOAR
+      - response playbook
+      - autonomous containment
+      - remediation orchestration
+      - cyber recovery planning
+
+  T11:
+    positive:
+      - digital forensics
+      - cyber forensics
+      - forensic analysis
+      - forensic timeline
+      - memory forensics
+      - disk forensics
+      - mobile forensics
+      - forensic artifact classification
+
+  T12:
+    positive:
+      - attack surface management
+      - exposure management
+      - cyber risk prediction
+      - cyber risk assessment
+      - asset discovery
+      - asset classification
+      - vulnerability prioritization
+      - security posture analytics
+      - exposure prioritization
+
+  T13:
+    positive:
+      - adaptive authentication
+      - identity anomaly detection
+      - identity threat detection
+      - access anomaly
+      - privilege misuse
+      - privileged access anomaly
+      - behavioral biometrics
+      - continuous authentication
+
+  T14:
+    positive:
+      - cyber deception
+      - intelligent honeypot
+      - adaptive honeypot
+      - honeynet
+      - moving target defense
+      - adaptive defense
+      - deception technology
+
+  T15:
+    positive:
+      - secure code review
+      - AI code security
+      - software security analysis
+      - SAST
+      - DAST
+      - dependency vulnerability detection
+      - software supply chain security
+      - secret detection
+      - misconfiguration detection
+      - secure coding assistant
+      - security code analysis
+
+cross_cutting_terms:
+  generative_ai:
+    - large language model
+    - LLM
+    - generative AI
+    - code agent
+    - reasoning agent
+  autonomy:
+    - autonomous
+    - agentic
+    - closed-loop
+    - self-directed
+    - multi-agent
+  explainability:
+    - explainable AI
+    - XAI
+    - interpretable
+  privacy_preserving:
+    - federated learning
+    - privacy preserving machine learning
+  graph_methods:
+    - graph neural network
+    - knowledge graph
+    - temporal graph
+
+screening_logic:
+  rule_1: "Require at least one AI term and one cybersecurity capability term unless the source is already in a domain-specific corpus."
+  rule_2: "Assign one primary Txx family based on defensive objective; allow secondary labels when the contribution genuinely spans multiple operational capabilities."
+  rule_3: "Do not classify solely from title keywords when abstract/readme/claims provide contradictory evidence."
+  rule_4: "For GitHub, use README/topics/dependencies/release descriptions in addition to repository name."
+  rule_5: "For patents, prioritize abstract/claims/CPC context over title-only matches."
+  rule_6: "For CVE-linked records, map to a defensive technology only when there is a defensible relationship to detection, analysis, remediation, prioritization or response—not merely because a CVE exists."
