@@ -1,0 +1,66 @@
+name: WP2 Patent Public Bulk Pilot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-patent-public-bulk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Collect 500 patent candidates from public PatentsView bulk
+        working-directory: My_work/03_data/pilot
+        run: python collect_patents_public_bulk.py --max-total 500 --per-family-pool 180 --cutoff 2026-06-30
+      - name: Screen patent candidates
+        working-directory: My_work/03_data/pilot
+        run: python screen_candidates.py output/patent_candidates.jsonl
+      - name: Write patent status
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import json, pathlib, datetime
+          p = pathlib.Path('output/patent_candidates.jsonl')
+          n = sum(1 for x in p.open(encoding='utf-8') if x.strip()) if p.exists() else 0
+          status = {
+            'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'source': 'patentsview_public_bulk',
+            'target': 500,
+            'actual_candidates': n,
+            'research_cutoff': '2026-06-30',
+            'status': 'COLLECTED' if n else 'FAILED_OR_EMPTY',
+            'sources': [
+              'https://s3.amazonaws.com/data.patentsview.org/download/g_patent_abstract.tsv.zip',
+              'https://s3.amazonaws.com/data.patentsview.org/download/g_patent.tsv.zip'
+            ],
+            'sampling': 'full abstract stream scan + deterministic family pools + patent metadata join'
+          }
+          pathlib.Path('output/patent_pilot_status.json').write_text(json.dumps(status, indent=2), encoding='utf-8')
+          PY
+      - name: Persist patent outputs/status
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/patent_candidates.jsonl My_work/03_data/pilot/output/patent_pilot_status.json
+          if git diff --cached --quiet; then
+            echo 'No patent changes to commit.'
+          else
+            git commit -m 'WP2: collect public PatentsView bulk Pilot candidates'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
