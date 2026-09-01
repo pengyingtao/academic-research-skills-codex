@@ -1,0 +1,227 @@
+version: "1.1"
+status: "PILOT"
+updated: "2026-09-01"
+extends: "taxonomy_v1.yaml"
+loader_rule: "Load taxonomy_v1.yaml first, then merge this overlay by family id."
+id_stability: "T01-T15 and all existing subfamily IDs remain unchanged."
+
+changes:
+  - "Separate technology supply classification (Science/Patent/Open Source) from Vulnerability Demand Pressure mapping."
+  - "Add source-specific ambiguity constraints."
+  - "Add GitHub artifact_type and offensive/dual-use boundary."
+  - "Strengthen T01/T04/T12, T02/T15 and T09/T10 boundary rules."
+
+source_roles:
+  science:
+    role: "technology knowledge production"
+    label_mode: "T01-T15"
+  patent:
+    role: "technology formalization / appropriation"
+    label_mode: "T01-T15"
+  open_source:
+    role: "engineering implementation / diffusion"
+    label_mode: "T01-T15 plus artifact_type"
+  vulnerability:
+    role: "demand pressure / exploitation environment"
+    label_mode: "VDP mapping only; no direct T01-T15 ground-truth label"
+    config: "vdp_mapping_v1.yaml"
+
+family_overrides:
+  T01:
+    required_context_any:
+      - source code
+      - binary
+      - software flaw
+      - program weakness
+      - CWE
+      - CVE
+      - vulnerability localization
+      - exploitability prediction
+      - fuzzing
+    ambiguity_note: "The word vulnerability alone is insufficient. Network anomaly/attack detection belongs to T04/T12 when no software weakness is being located or analyzed."
+
+  T02:
+    required_context_any:
+      - security vulnerability
+      - vulnerability repair
+      - security patch
+      - CVE
+      - CWE
+      - secure remediation
+      - vulnerability fix
+    negative_context_any:
+      - generic bug fixing
+      - generic automated program repair without security context
+    ambiguity_note: "General APR is outside scope unless the target is security weakness/remediation."
+
+  T03:
+    required_context_any:
+      - malware
+      - ransomware
+      - malicious code
+      - malicious executable
+      - malware family
+
+  T04:
+    required_context_any:
+      - intrusion
+      - network traffic
+      - network anomaly
+      - lateral movement
+      - UEBA
+      - user entity behavior
+      - encrypted traffic
+    negative_context_any:
+      - generic industrial anomaly detection
+      - generic sensor anomaly detection
+
+  T05:
+    required_context_any:
+      - phishing
+      - malicious URL
+      - malicious domain
+      - business email compromise
+      - digital identity fraud
+      - account takeover
+      - cyber-enabled fraud
+    ambiguity_note: "Generic financial risk scoring/fraud analytics without cyber/identity/account context is excluded."
+
+  T06:
+    required_context_any:
+      - botnet
+      - DDoS
+      - denial of service
+      - command and control
+      - C2
+      - malicious infrastructure
+    negative_context_any:
+      - social bot detection
+      - generic web bot analytics
+
+  T07:
+    required_context_any:
+      - cyber threat intelligence
+      - CTI
+      - IOC
+      - TTP
+      - threat actor
+      - cyber campaign
+      - ATT&CK
+    negative_context_any:
+      - generic geopolitical intelligence
+      - generic business intelligence
+
+  T08:
+    required_context_any:
+      - threat hunting
+      - security investigation
+      - attack chain
+      - cyber investigation
+      - telemetry correlation
+    ambiguity_note: "Generic OSINT/recon does not qualify unless the primary purpose is defensive investigation."
+
+  T09:
+    required_context_any:
+      - SOC
+      - security operations center
+      - SIEM
+      - security analyst
+      - alert triage
+      - blue team
+      - security operations agent
+    negative_context_any:
+      - penetration testing agent
+      - red team agent
+      - exploit agent
+    ambiguity_note: "Agent is not sufficient; it must operate as a defensive security-operations actor."
+
+  T10:
+    required_context_any:
+      - incident response
+      - containment
+      - SOAR
+      - response playbook
+      - remediation orchestration
+      - recovery
+    ambiguity_note: "T10 requires response execution/planning. Analysis-only SOC assistants remain T09."
+
+  T11:
+    required_context_any:
+      - digital forensics
+      - computer forensics
+      - memory forensics
+      - disk forensics
+      - mobile forensics
+      - forensic timeline
+    negative_context_any:
+      - accounting forensics
+      - legal forensic science
+
+  T12:
+    required_context_any:
+      - attack surface
+      - exposure management
+      - vulnerability management
+      - cyber risk
+      - asset discovery
+      - security posture
+    ambiguity_note: "Portfolio/asset/exposure prioritization belongs to T12; locating a specific software weakness belongs to T01."
+
+  T13:
+    required_context_any:
+      - authentication
+      - identity
+      - access control
+      - privilege
+      - account takeover
+      - behavioral biometrics
+
+  T14:
+    required_context_any:
+      - cyber deception
+      - honeypot
+      - honeynet
+      - moving target defense
+      - adaptive cyber defense
+    negative_context_any:
+      - military deception without cyber context
+
+  T15:
+    required_context_any:
+      - secure code
+      - software security
+      - SAST
+      - DAST
+      - dependency vulnerability
+      - software supply chain
+      - secret detection
+      - security misconfiguration
+      - secure coding
+    ambiguity_note: "Security integrated into development lifecycle is T15; direct vulnerability repair is T02."
+
+github_artifact_types:
+  - tool_framework
+  - production_platform
+  - paper_code
+  - dataset_benchmark
+  - awesome_list_catalog
+  - tutorial_course
+  - ctf_demo
+  - offensive_tool
+  - mixed_dual_use
+
+github_scope_rules:
+  exclude_by_default:
+    - "offensive_tool whose primary objective is exploitation, reconnaissance, pentesting or bug bounty automation"
+    - "forks/mirrors duplicated from an upstream repository"
+  retain_but_separate:
+    - awesome_list_catalog
+    - tutorial_course
+    - ctf_demo
+    - dataset_benchmark
+    - paper_code
+  note: "Retained artifact types may be used for ecosystem discovery but should not be given the same engineering-activity weight as production tools/frameworks."
+
+validation_gate:
+  next: "2500-record Pilot Corpus"
+  condition: "Use V1.1 source-role rules and vdp_mapping_v1.yaml; preserve all version fields and point-in-time timestamps."
