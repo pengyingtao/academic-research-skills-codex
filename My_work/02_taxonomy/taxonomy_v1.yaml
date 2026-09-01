@@ -1,0 +1,198 @@
+version: "1.0"
+status: "PILOT"
+updated: "2026-09-01"
+research_scope: "AI for Cybersecurity only; excludes Security of AI except when a record's primary purpose is defensive cybersecurity capability."
+
+basis:
+  - "NIST Cyber AI Profile: Conducting AI-Enabled Cyber Defense"
+  - "NIST CSF functions: Identify, Protect, Detect, Respond, Recover"
+  - "AI-for-cybersecurity systematic review taxonomies"
+  - "Domain refinement for STOV cross-source technology forecasting"
+
+classification_principle:
+  primary_axis: "defensive cybersecurity capability / operational outcome"
+  secondary_axis: "technical mechanism or task"
+  multi_label: true
+  forecasting_unit: "technology entity, not document type"
+
+families:
+  - id: T01
+    name: "AI Vulnerability Discovery and Analysis"
+    nist_functions: [IDENTIFY, DETECT]
+    description: "AI/ML/LLM methods that discover, classify, localize, prioritize, validate or reason about software/hardware vulnerabilities."
+    subfamilies:
+      - {id: T01.01, name: "Source-code vulnerability detection"}
+      - {id: T01.02, name: "Binary vulnerability discovery"}
+      - {id: T01.03, name: "AI-guided fuzzing"}
+      - {id: T01.04, name: "LLM vulnerability reasoning and localization"}
+      - {id: T01.05, name: "Autonomous vulnerability validation / PoC-assisted analysis"}
+      - {id: T01.06, name: "Vulnerability prioritization and exploitability prediction"}
+
+  - id: T02
+    name: "AI Automated Remediation and Program Repair"
+    nist_functions: [RESPOND, RECOVER, PROTECT]
+    description: "AI systems that generate, validate, prioritize or deploy software/security fixes."
+    subfamilies:
+      - {id: T02.01, name: "Automated patch generation"}
+      - {id: T02.02, name: "Patch correctness / regression validation"}
+      - {id: T02.03, name: "Vulnerability-to-fix reasoning"}
+      - {id: T02.04, name: "Autonomous remediation orchestration"}
+      - {id: T02.05, name: "Virtual patching / compensating controls"}
+
+  - id: T03
+    name: "AI Malware and Ransomware Detection/Analysis"
+    nist_functions: [DETECT, RESPOND]
+    description: "AI-based static, dynamic, behavioral and semantic malware analysis."
+    subfamilies:
+      - {id: T03.01, name: "Static malware classification"}
+      - {id: T03.02, name: "Dynamic/behavioral malware analysis"}
+      - {id: T03.03, name: "Ransomware detection"}
+      - {id: T03.04, name: "Malware family attribution"}
+      - {id: T03.05, name: "Malware reverse engineering assistance"}
+
+  - id: T04
+    name: "AI Intrusion and Network Anomaly Detection"
+    nist_functions: [DETECT]
+    description: "AI methods for intrusion, network behavior and anomalous activity detection."
+    subfamilies:
+      - {id: T04.01, name: "Network intrusion detection"}
+      - {id: T04.02, name: "Network anomaly detection"}
+      - {id: T04.03, name: "Encrypted traffic classification"}
+      - {id: T04.04, name: "Lateral movement detection"}
+      - {id: T04.05, name: "Insider/anomalous user behavior detection"}
+
+  - id: T05
+    name: "AI Phishing, Social Engineering and Fraud Defense"
+    nist_functions: [PROTECT, DETECT]
+    description: "AI-enabled identification and prevention of phishing, social engineering, impersonation and related fraud."
+    subfamilies:
+      - {id: T05.01, name: "Email/SMS phishing detection"}
+      - {id: T05.02, name: "Malicious URL/domain detection"}
+      - {id: T05.03, name: "Business email compromise detection"}
+      - {id: T05.04, name: "Deepfake/impersonation defense"}
+      - {id: T05.05, name: "Transaction/account fraud detection"}
+
+  - id: T06
+    name: "AI Botnet, DDoS and Automated Abuse Detection"
+    nist_functions: [DETECT, RESPOND]
+    description: "AI methods for detecting botnets, denial-of-service activity, automated abuse and coordinated malicious infrastructure."
+    subfamilies:
+      - {id: T06.01, name: "Botnet detection"}
+      - {id: T06.02, name: "DDoS detection/mitigation"}
+      - {id: T06.03, name: "Malicious infrastructure clustering"}
+      - {id: T06.04, name: "Automated abuse/bot behavior detection"}
+
+  - id: T07
+    name: "AI Cyber Threat Intelligence"
+    nist_functions: [IDENTIFY, DETECT]
+    description: "AI systems that extract, fuse, enrich, link and forecast cyber threat intelligence."
+    subfamilies:
+      - {id: T07.01, name: "IOC/TTP extraction"}
+      - {id: T07.02, name: "Threat report summarization and fusion"}
+      - {id: T07.03, name: "Threat knowledge graphs"}
+      - {id: T07.04, name: "Threat actor/campaign attribution"}
+      - {id: T07.05, name: "Threat forecasting and early warning"}
+
+  - id: T08
+    name: "AI Threat Hunting and Investigation"
+    nist_functions: [DETECT, RESPOND]
+    description: "AI-assisted or autonomous search, hypothesis generation, investigation and evidence correlation for hidden threats."
+    subfamilies:
+      - {id: T08.01, name: "Hunt hypothesis generation"}
+      - {id: T08.02, name: "Telemetry correlation"}
+      - {id: T08.03, name: "Attack-chain reconstruction"}
+      - {id: T08.04, name: "Autonomous investigation agents"}
+
+  - id: T09
+    name: "AI SOC and Security Copilots/Agents"
+    nist_functions: [IDENTIFY, DETECT, RESPOND]
+    description: "AI copilots and autonomous agents supporting SOC triage, analysis, investigation and operational decision support."
+    subfamilies:
+      - {id: T09.01, name: "Alert triage and prioritization"}
+      - {id: T09.02, name: "SOC analyst copilot"}
+      - {id: T09.03, name: "Security operations agent"}
+      - {id: T09.04, name: "Multi-agent cyber defense"}
+      - {id: T09.05, name: "Human-AI collaborative SOC"}
+
+  - id: T10
+    name: "AI Incident Response and Security Orchestration"
+    nist_functions: [RESPOND, RECOVER]
+    description: "AI-assisted containment, response planning, playbook selection, SOAR and closed-loop response."
+    subfamilies:
+      - {id: T10.01, name: "Incident classification and prioritization"}
+      - {id: T10.02, name: "Response recommendation"}
+      - {id: T10.03, name: "SOAR/playbook generation"}
+      - {id: T10.04, name: "Autonomous containment"}
+      - {id: T10.05, name: "Recovery planning and validation"}
+
+  - id: T11
+    name: "AI Digital Forensics"
+    nist_functions: [RESPOND, RECOVER]
+    description: "AI methods for forensic evidence extraction, timeline reconstruction, artifact classification and investigative reasoning."
+    subfamilies:
+      - {id: T11.01, name: "Artifact classification"}
+      - {id: T11.02, name: "Forensic timeline reconstruction"}
+      - {id: T11.03, name: "Memory/disk/mobile forensic analysis"}
+      - {id: T11.04, name: "Forensic reasoning and report assistance"}
+
+  - id: T12
+    name: "AI Attack Surface, Exposure and Cyber Risk Analytics"
+    nist_functions: [IDENTIFY, PROTECT]
+    description: "AI systems for asset discovery, attack-surface mapping, exposure prioritization, risk prediction and vulnerability management."
+    subfamilies:
+      - {id: T12.01, name: "Asset discovery/classification"}
+      - {id: T12.02, name: "Attack surface management"}
+      - {id: T12.03, name: "Cyber risk prediction"}
+      - {id: T12.04, name: "Vulnerability/exposure prioritization"}
+      - {id: T12.05, name: "Security posture analytics"}
+
+  - id: T13
+    name: "AI Identity, Access and Behavioral Security"
+    nist_functions: [PROTECT, DETECT]
+    description: "AI for identity verification, access anomaly detection, authentication risk and privilege misuse defense."
+    subfamilies:
+      - {id: T13.01, name: "Adaptive authentication"}
+      - {id: T13.02, name: "Identity anomaly detection"}
+      - {id: T13.03, name: "Privilege misuse detection"}
+      - {id: T13.04, name: "Behavioral biometrics"}
+
+  - id: T14
+    name: "AI Cyber Deception and Adaptive Defense"
+    nist_functions: [PROTECT, DETECT, RESPOND]
+    description: "AI for honeypots, deception, moving-target defense and adaptive defensive configuration."
+    subfamilies:
+      - {id: T14.01, name: "Intelligent honeypots/honeynets"}
+      - {id: T14.02, name: "Cyber deception generation"}
+      - {id: T14.03, name: "Moving-target defense"}
+      - {id: T14.04, name: "Adaptive defensive configuration"}
+
+  - id: T15
+    name: "AI Secure Software Engineering and Code Security"
+    nist_functions: [IDENTIFY, PROTECT, DETECT]
+    description: "AI-assisted security analysis integrated into software development, code review, dependency and supply-chain defense."
+    subfamilies:
+      - {id: T15.01, name: "AI security code review"}
+      - {id: T15.02, name: "SAST/DAST enhancement"}
+      - {id: T15.03, name: "Dependency/supply-chain risk detection"}
+      - {id: T15.04, name: "Secret/misconfiguration detection"}
+      - {id: T15.05, name: "Secure coding recommendation"}
+
+exclusion_rules:
+  - "Exclude work whose primary objective is securing AI/ML models themselves (prompt injection defense, model poisoning defense, model extraction defense) unless the contribution is explicitly a general cyber-defense capability."
+  - "Exclude AI-enabled offensive exploitation unless the primary objective is defensive evaluation, vulnerability discovery for remediation, or security testing."
+  - "Exclude generic AI/ML papers without a cybersecurity operational outcome."
+  - "Exclude purely policy/governance papers unless they produce a technical defensive capability or directly inform taxonomy boundary validation."
+
+pilot_validation:
+  target_records: 2500
+  suggested_distribution:
+    openalex: 1000
+    patents: 500
+    github: 500
+    cve_related: 500
+  manual_review_sample: 300
+  metrics:
+    - precision
+    - recall
+    - f1
+    - inter_annotator_agreement_if_dual_annotation
