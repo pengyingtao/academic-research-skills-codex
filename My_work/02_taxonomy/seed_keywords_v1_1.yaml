@@ -1,0 +1,123 @@
+version: "1.1"
+status: "PILOT"
+updated: "2026-09-01"
+extends: "seed_keywords_v1.yaml"
+loader_rule: "Load seed_keywords_v1.yaml then merge required_context / negative_context / source_specific rules from this file."
+
+retrieval_policy:
+  stage_a: "High-recall candidate retrieval with AI + cyber capability terms for S/T/O."
+  stage_b: "High-precision classification using required_context, negative_context, source evidence priority and taxonomy descriptions."
+  vulnerability_source: "Do not use AI keywords; use vdp_mapping_v1.yaml."
+
+family_context:
+  T01:
+    required_context_any: ["source code", "binary", "software", "program", "CVE", "CWE", "fuzzing", "exploitability"]
+    negative_context_any: ["model vulnerability", "AI model vulnerability", "prompt injection", "adversarial example"]
+
+  T02:
+    required_context_any: ["security", "vulnerability", "CVE", "CWE", "secure code", "patch"]
+    negative_context_any: ["generic bug", "functional bug only"]
+
+  T04:
+    required_context_any: ["network", "intrusion", "traffic", "security", "UEBA", "lateral movement", "host-based"]
+    negative_context_any: ["sensor anomaly", "industrial fault", "medical anomaly"]
+
+  T05:
+    required_context_any: ["phishing", "malicious URL", "malicious domain", "BEC", "account", "identity", "cyber"]
+    negative_context_any: ["credit risk only", "generic financial fraud"]
+
+  T06:
+    required_context_any: ["botnet", "DDoS", "network abuse", "command and control", "C2", "malicious infrastructure"]
+    negative_context_any: ["social bot", "marketing bot"]
+
+  T07:
+    required_context_any: ["cyber", "CTI", "IOC", "TTP", "ATT&CK", "threat actor", "malware campaign"]
+
+  T08:
+    required_context_any: ["threat hunting", "defensive investigation", "telemetry", "attack chain", "security investigation"]
+    negative_context_any: ["reconnaissance only", "OSINT for offensive targeting"]
+
+  T09:
+    required_context_any: ["SOC", "SIEM", "blue team", "alert triage", "security operations", "security analyst"]
+    negative_context_any: ["pentest", "bug bounty", "exploit orchestration", "red team only"]
+
+  T10:
+    required_context_any: ["incident response", "containment", "SOAR", "playbook", "recovery", "response orchestration"]
+
+  T11:
+    required_context_any: ["digital", "computer", "memory", "disk", "mobile", "cyber"]
+    negative_context_any: ["accounting forensic", "forensic medicine"]
+
+  T12:
+    required_context_any: ["attack surface", "exposure", "asset", "cyber risk", "vulnerability management", "security posture"]
+
+  T14:
+    required_context_any: ["cyber", "honeypot", "honeynet", "moving target defense"]
+
+  T15:
+    required_context_any: ["security", "secure", "vulnerability", "SAST", "DAST", "dependency", "supply chain", "secret", "misconfiguration"]
+
+source_specific:
+  github:
+    positive_operational_context:
+      - blue team
+      - SOC
+      - SIEM
+      - SOAR
+      - defensive security
+      - threat detection
+      - remediation
+      - security monitoring
+      - vulnerability management
+      - incident response
+    offensive_negative_context:
+      - autonomous pentesting
+      - penetration testing
+      - pentest
+      - exploit generation
+      - exploitation orchestration
+      - bug bounty
+      - red team
+      - offensive security
+      - recon
+    metadata_flags:
+      - fork
+      - archived
+      - mirror
+      - template
+      - stars
+      - forks
+      - created_at
+      - pushed_at
+      - release_count
+      - contributor_count
+
+  patents:
+    title_only_prohibited: true
+    t01_object_terms: ["source code", "binary", "software flaw", "program weakness", "CWE", "CVE"]
+    network_detection_terms: ["network traffic", "abnormal traffic", "intrusion", "network behavior", "attack behavior"]
+    note: "If vulnerability title terms co-occur only with network detection terms, classify toward T04/T12 rather than T01 unless claims establish a software weakness target."
+
+  papers:
+    generic_apr_requires_security_context: true
+    generic_anomaly_requires_cyber_context: true
+    generic_agent_requires_soc_or_defense_context: true
+
+  vulnerability:
+    use_ai_terms: false
+    direct_technology_label: false
+    mapping_file: "vdp_mapping_v1.yaml"
+
+screening_output_fields:
+  - source_type
+  - source_id
+  - retrieved_by_terms
+  - required_context_hit
+  - negative_context_hit
+  - in_scope
+  - primary_technology_id
+  - secondary_technology_ids
+  - github_artifact_type
+  - false_positive_type
+  - confidence
+  - reason
