@@ -1,0 +1,31 @@
+name: WP2 Pilot Logic Tests
+
+on:
+  push:
+    paths:
+      - 'My_work/03_data/pilot/**.py'
+      - 'My_work/03_data/pilot/query_pack_v1.yaml'
+      - '.github/workflows/wp2-pilot-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Compile Pilot scripts
+        working-directory: My_work/03_data/pilot
+        run: python -m compileall -q .
+      - name: Run offline regression tests
+        working-directory: My_work/03_data/pilot
+        run: python -m unittest -v test_pilot_logic.py
