@@ -9,20 +9,14 @@ from typing import Any
 import requests
 
 from common import OUT_DIR, write_jsonl
+from kev_history import resolve_kev_snapshot
 
-CISA_KEV = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 EPSS_API = "https://api.first.org/data/v1/epss"
 EPSS_START = date(2021, 4, 14)
 
 
 def load_jsonl(path: Path):
     return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
-
-
-def fetch_kev() -> dict[str, dict[str, Any]]:
-    r = requests.get(CISA_KEV, timeout=45)
-    r.raise_for_status()
-    return {x["cveID"]: x for x in r.json().get("vulnerabilities", []) if x.get("cveID")}
 
 
 def fetch_epss_at(cves: list[str], cutoff: str) -> dict[str, dict[str, Any]]:
@@ -37,8 +31,11 @@ def fetch_epss_at(cves: list[str], cutoff: str) -> dict[str, dict[str, Any]]:
     for cve in cves:
         extra = len(cve) + (1 if batch else 0)
         if batch and chars + extra > 1900:
-            batches.append(batch); batch = []; chars = 0
-        batch.append(cve); chars += extra
+            batches.append(batch)
+            batch = []
+            chars = 0
+        batch.append(cve)
+        chars += extra
     if batch:
         batches.append(batch)
     for b in batches:
@@ -58,17 +55,28 @@ def main() -> None:
     args = ap.parse_args()
     cutoff_date = date.fromisoformat(args.cutoff)
     rows = load_jsonl(Path(args.input))
-    kev = fetch_kev()
+
+    kev_snapshot = resolve_kev_snapshot(args.cutoff)
+    kev = kev_snapshot.entries
     epss = fetch_epss_at([r["cve_id"] for r in rows if r.get("cve_id")], args.cutoff)
 
     for row in rows:
         cve = row.get("cve_id")
         k = kev.get(cve)
-        kev_date = date.fromisoformat(k["dateAdded"]) if k and k.get("dateAdded") else None
         e = epss.get(cve)
         row["materialized_cutoff"] = args.cutoff
-        row["kev_status_at_cutoff"] = bool(kev_date and kev_date <= cutoff_date)
+
+        # In a true Git snapshot, presence in the snapshot is the historical
+        # status. In the pre-mirror fallback, entries were already filtered by
+        # dateAdded <= cutoff by kev_history.resolve_kev_snapshot().
+        row["kev_status_at_cutoff"] = bool(k)
         row["kev_added_date"] = k.get("dateAdded") if k else None
+        row["kev_materialization_method"] = kev_snapshot.method
+        row["kev_source_commit"] = kev_snapshot.source_commit
+        row["kev_source_commit_date"] = kev_snapshot.source_commit_date
+        row["kev_git_history_start_date"] = kev_snapshot.earliest_git_commit_date
+        row["kev_materialization_caveat"] = kev_snapshot.caveat
+
         if cutoff_date >= EPSS_START:
             row["epss_structurally_available_at_cutoff"] = True
             row["epss_score_at_cutoff"] = float(e["epss"]) if e and e.get("epss") else None
@@ -82,7 +90,10 @@ def main() -> None:
 
     output = Path(args.out) if args.out else OUT_DIR / f"vdp_at_{args.cutoff}.jsonl"
     n = write_jsonl(output, rows)
-    print(f"wrote {n} point-in-time VDP records for cutoff {args.cutoff}")
+    print(
+        f"wrote {n} point-in-time VDP records for cutoff {args.cutoff}; "
+        f"KEV method={kev_snapshot.method}; commit={kev_snapshot.source_commit or 'N/A'}"
+    )
 
 
 if __name__ == "__main__":
