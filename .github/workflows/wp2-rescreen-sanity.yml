@@ -1,0 +1,43 @@
+name: WP2 Re-screen Current Sanity Batch
+
+on:
+  push:
+    paths:
+      - 'My_work/03_data/pilot/rescreen_existing.py'
+      - 'My_work/03_data/pilot/screen_candidates.py'
+      - '.github/workflows/wp2-rescreen-sanity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rescreen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Re-screen persisted current-sanity GitHub batch
+        working-directory: My_work/03_data/pilot
+        run: python rescreen_existing.py
+      - name: Persist diagnostic summary
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/analysis/current_sanity_rescreen_v1.json
+          if git diff --cached --quiet; then
+            echo 'No diagnostic changes.'
+          else
+            git commit -m 'WP2: persist current-sanity rescreen diagnostic'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
