@@ -1,0 +1,103 @@
+version: "1.0"
+status: "FROZEN_FOR_PILOT"
+updated: "2026-09-01"
+
+common_fields:
+  - record_id
+  - source_type
+  - source_native_id
+  - observed_at
+  - event_date
+  - source_modified_at
+  - title_or_name
+  - text_evidence
+  - retrieval_query_id
+  - retrieved_by_terms
+  - taxonomy_version
+  - keyword_version
+  - in_scope
+  - confidence
+  - screening_reason
+  - false_positive_type
+
+supply_fields:
+  applies_to: [science, patent, open_source]
+  fields:
+    - primary_technology_id
+    - secondary_technology_ids
+    - ai_method_tags
+    - cybersecurity_function_tags
+    - use_orientation
+    - target_object
+
+science_fields:
+  - doi
+  - openalex_id
+  - publication_date
+  - venue
+  - topics
+  - authors
+  - institutions
+  - cited_by_count_as_observed
+  - referenced_works
+
+patent_fields:
+  - patent_id
+  - application_id
+  - filing_date
+  - publication_date
+  - assignee
+  - inventors
+  - cpc_codes
+  - ipc_codes
+  - claims_evidence
+  - cited_patents
+  - cited_non_patent_literature
+
+open_source_fields:
+  - repository_full_name
+  - created_at
+  - pushed_at
+  - language
+  - topics
+  - artifact_type
+  - fork
+  - archived
+  - stars_as_observed
+  - forks_as_observed
+  - release_count_as_observed
+  - contributor_count_as_observed
+  - commit_activity_as_observed
+
+vulnerability_fields:
+  applies_to: [vulnerability]
+  fields:
+    - cve_id
+    - cwe_ids
+    - cwe_group
+    - cvss_base_as_observed
+    - cvss_exploitability_as_observed
+    - cpe_as_observed
+    - affected_vendor_count
+    - affected_product_count
+    - kev_status_as_observed
+    - kev_added_date
+    - epss_score_as_observed
+    - epss_percentile_as_observed
+    - pressure_group
+    - hypothesized_pressure_targets
+  prohibited_fields:
+    - primary_technology_id_as_ground_truth
+
+label_values:
+  confidence: [HIGH, MEDIUM, LOW, REJECT]
+  use_orientation: [DEFENSIVE, DUAL_USE_DEFENSE_PRIMARY, DUAL_USE_OFFENSE_PRIMARY, OFFENSIVE, UNCLEAR]
+  github_artifact_type: [tool_framework, production_platform, paper_code, dataset_benchmark, awesome_list_catalog, tutorial_course, ctf_demo, offensive_tool, mixed_dual_use]
+
+quality_rules:
+  - "Every record must carry taxonomy_version and observed_at."
+  - "Supply records require a semantic screening reason even when auto-labeled HIGH confidence."
+  - "Vulnerability records must not be used as direct T01-T15 supervised labels."
+  - "All mutable metrics must state as_observed semantics."
+  - "Duplicate DOI/patent/repository/CVE records are deduplicated within source before cross-source entity resolution."
+  - "Historical backtest materialization must select only observations knowable before fold cutoff."
