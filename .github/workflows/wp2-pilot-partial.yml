@@ -12,11 +12,13 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -29,9 +31,18 @@ jobs:
       - name: Collect NVD sample
         working-directory: My_work/03_data/pilot
         run: python collect_nvd.py --max-total 120 --per-cwe 5
+      - name: Enrich VDP current-state sanity fields
+        working-directory: My_work/03_data/pilot
+        run: python enrich_vdp_current.py --input output/nvd_candidates.jsonl
       - name: Screen available sample
         working-directory: My_work/03_data/pilot
-        run: python screen_candidates.py output/github_candidates.jsonl output/nvd_candidates.jsonl
+        run: python screen_candidates.py output/github_candidates.jsonl output/nvd_candidates_current_enriched.jsonl
+      - name: Summarize Pilot batch
+        working-directory: My_work/03_data/pilot
+        run: python summarize_pilot.py --input output/pilot_screened.jsonl --out output/pilot_summary.json
+      - name: Build partial manual review queue
+        working-directory: My_work/03_data/pilot
+        run: python build_review_queue.py --input output/pilot_screened.jsonl --n 200
       - name: Write run metadata
         working-directory: My_work/03_data/pilot
         run: |
@@ -43,7 +54,9 @@ jobs:
             'sources': ['github', 'nvd'],
             'target': {'github': 120, 'nvd': 120},
             'taxonomy_version': '1.1',
-            'note': 'Partial Gate 2B batch. OpenAlex requires OPENALEX_API_KEY; patents require bulk data or existing PatentsView key.'
+            'keyword_version': '1.1',
+            'vdp_enrichment_semantics': 'CURRENT_SANITY_ONLY',
+            'note': 'Partial Gate 2B batch. OpenAlex requires OPENALEX_API_KEY; patents require bulk data or existing PatentsView key. Historical folds must use point-in-time KEV/EPSS, not these current enriched values.'
           }
           (out / 'partial_run_metadata.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
           PY
@@ -56,5 +69,7 @@ jobs:
             echo 'No generated changes to commit.'
           else
             git commit -m 'WP2: collect partial GitHub and NVD Pilot batch'
-            git push
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
           fi
