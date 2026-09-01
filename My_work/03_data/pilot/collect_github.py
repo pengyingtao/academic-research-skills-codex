@@ -58,59 +58,90 @@ def analysis_role(kind: str) -> str:
     return "ENGINEERING_SUPPLY"
 
 
-def fetch_family(family: str, terms: list[str], target_main: int, cutoff: str, seen: set[str], auxiliary_cap: int = 10) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def quote_search_term(term: str) -> str:
+    return f'"{term}"' if " " in term else term
+
+
+def build_search_query(term: str, ai_anchor: str, cutoff: str) -> str:
+    return (
+        f'{quote_search_term(term)} {quote_search_term(ai_anchor)} cybersecurity '
+        f'in:name,description,readme archived:false fork:false created:<={cutoff}'
+    )
+
+
+def fetch_family(
+    family: str,
+    terms: list[str],
+    ai_anchors: list[str],
+    target_main: int,
+    cutoff: str,
+    seen: set[str],
+    auxiliary_cap: int = 10,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     main: list[dict[str, Any]] = []
     auxiliary: list[dict[str, Any]] = []
+
     for term in terms:
         if len(main) >= target_main:
             break
-        q = f'"{term}" cybersecurity in:name,description,readme archived:false fork:false created:<={cutoff}'
-        # Over-fetch because discovery/catalog artifacts are diverted to auxiliary output.
-        per_page = min(30, max(10, (target_main - len(main)) * 2))
-        data = request_json("GET", SEARCH_API, headers=headers(), params={"q": q, "sort": "updated", "order": "desc", "per_page": per_page}, min_interval=2.1)
-        for item in data.get("items", []):
-            full_name = item.get("full_name")
-            if not full_name or full_name in seen:
-                continue
-            seen.add(full_name)
-            repo = request_json("GET", REPO_API.format(full_name=full_name), headers=headers(), min_interval=0.35)
-            created = (repo.get("created_at") or "")[:10]
-            if created and created > cutoff:
-                continue
-            readme = fetch_readme(full_name)
-            kind = artifact_type(repo, readme)
-            role = analysis_role(kind)
-            rec = base_record("open_source", full_name, title=full_name, text=(repo.get("description") or "") + "\n" + readme, query_id=f"GH-{family}")
-            rec.update({
-                "event_date": repo.get("created_at"),
-                "source_modified_at": repo.get("updated_at"),
-                "repository_full_name": full_name,
-                "created_at": repo.get("created_at"),
-                "pushed_at": repo.get("pushed_at"),
-                "language": repo.get("language"),
-                "topics": repo.get("topics") or [],
-                "artifact_type": kind,
-                "analysis_role": role,
-                "count_as_engineering_signal": role == "ENGINEERING_SUPPLY",
-                "fork": repo.get("fork", False),
-                "archived": repo.get("archived", False),
-                "stars_as_observed": repo.get("stargazers_count"),
-                "forks_as_observed": repo.get("forks_count"),
-                "release_count_as_observed": None,
-                "contributor_count_as_observed": None,
-                "commit_activity_as_observed": None,
-                "candidate_family": family,
-                "candidate_term": term,
-                "formal_created_cutoff": cutoff,
-                "mutable_metrics_semantics": "CURRENT_AS_OBSERVED_NOT_HISTORICAL",
-            })
-            if kind in AUXILIARY_TYPES:
-                if len(auxiliary) < auxiliary_cap:
-                    auxiliary.append(rec)
-            else:
-                main.append(rec)
-                if len(main) >= target_main:
-                    break
+        for ai_anchor in ai_anchors:
+            if len(main) >= target_main:
+                break
+            query = build_search_query(term, ai_anchor, cutoff)
+            # Candidate retrieval is deliberately narrower after the V1.1 audit:
+            # require an AI search anchor before paying for repo + README fetches.
+            per_page = min(30, max(8, (target_main - len(main)) * 2))
+            data = request_json(
+                "GET",
+                SEARCH_API,
+                headers=headers(),
+                params={"q": query, "sort": "updated", "order": "desc", "per_page": per_page},
+                min_interval=2.1,
+            )
+            for item in data.get("items", []):
+                full_name = item.get("full_name")
+                if not full_name or full_name in seen:
+                    continue
+                seen.add(full_name)
+                repo = request_json("GET", REPO_API.format(full_name=full_name), headers=headers(), min_interval=0.35)
+                created = (repo.get("created_at") or "")[:10]
+                if created and created > cutoff:
+                    continue
+                readme = fetch_readme(full_name)
+                kind = artifact_type(repo, readme)
+                role = analysis_role(kind)
+                rec = base_record("open_source", full_name, title=full_name, text=(repo.get("description") or "") + "\n" + readme, query_id=f"GH-{family}")
+                rec.update({
+                    "event_date": repo.get("created_at"),
+                    "source_modified_at": repo.get("updated_at"),
+                    "repository_full_name": full_name,
+                    "created_at": repo.get("created_at"),
+                    "pushed_at": repo.get("pushed_at"),
+                    "language": repo.get("language"),
+                    "topics": repo.get("topics") or [],
+                    "artifact_type": kind,
+                    "analysis_role": role,
+                    "count_as_engineering_signal": role == "ENGINEERING_SUPPLY",
+                    "fork": repo.get("fork", False),
+                    "archived": repo.get("archived", False),
+                    "stars_as_observed": repo.get("stargazers_count"),
+                    "forks_as_observed": repo.get("forks_count"),
+                    "release_count_as_observed": None,
+                    "contributor_count_as_observed": None,
+                    "commit_activity_as_observed": None,
+                    "candidate_family": family,
+                    "candidate_term": term,
+                    "candidate_ai_search_anchor": ai_anchor,
+                    "formal_created_cutoff": cutoff,
+                    "mutable_metrics_semantics": "CURRENT_AS_OBSERVED_NOT_HISTORICAL",
+                })
+                if kind in AUXILIARY_TYPES:
+                    if len(auxiliary) < auxiliary_cap:
+                        auxiliary.append(rec)
+                else:
+                    main.append(rec)
+                    if len(main) >= target_main:
+                        break
     return main, auxiliary
 
 
@@ -123,6 +154,7 @@ def main() -> None:
     args = ap.parse_args()
     q = load_queries()
     cutoff = args.cutoff or q["window"]["to"]
+    ai_anchors = q.get("github_search_ai_anchors") or ["AI", "machine learning", "LLM"]
     rows: list[dict[str, Any]] = []
     auxiliary: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -130,7 +162,15 @@ def main() -> None:
         remaining = args.max_total - len(rows)
         if remaining <= 0:
             break
-        main_new, aux_new = fetch_family(family, cfg["terms"], min(args.per_family, remaining), cutoff, seen, auxiliary_cap=max(2, args.max_auxiliary // max(1, len(q["families"]))))
+        main_new, aux_new = fetch_family(
+            family,
+            cfg["terms"],
+            ai_anchors,
+            min(args.per_family, remaining),
+            cutoff,
+            seen,
+            auxiliary_cap=max(2, args.max_auxiliary // max(1, len(q["families"]))),
+        )
         rows.extend(main_new)
         auxiliary.extend(aux_new)
     main_dedup = {r["repository_full_name"]: r for r in rows}
