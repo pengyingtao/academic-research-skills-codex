@@ -1,0 +1,60 @@
+name: WP2 Partial Pilot Collection
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-pilot-partial.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Collect GitHub sample
+        working-directory: My_work/03_data/pilot
+        run: python collect_github.py --per-family 12 --max-total 120
+      - name: Collect NVD sample
+        working-directory: My_work/03_data/pilot
+        run: python collect_nvd.py --max-total 120 --per-cwe 5
+      - name: Screen available sample
+        working-directory: My_work/03_data/pilot
+        run: python screen_candidates.py output/github_candidates.jsonl output/nvd_candidates.jsonl
+      - name: Write run metadata
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import json, pathlib, datetime
+          out = pathlib.Path('output')
+          meta = {
+            'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'sources': ['github', 'nvd'],
+            'target': {'github': 120, 'nvd': 120},
+            'taxonomy_version': '1.1',
+            'note': 'Partial Gate 2B batch. OpenAlex requires OPENALEX_API_KEY; patents require bulk data or existing PatentsView key.'
+          }
+          (out / 'partial_run_metadata.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
+          PY
+      - name: Commit generated Pilot batch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output
+          if git diff --cached --quiet; then
+            echo 'No generated changes to commit.'
+          else
+            git commit -m 'WP2: collect partial GitHub and NVD Pilot batch'
+            git push
+          fi
