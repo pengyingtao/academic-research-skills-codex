@@ -43,35 +43,48 @@ OpenAlex API collector 已 READY；有 key 时可直接运行约 1000 条 Scienc
 
 另有 `collect_openalex_snapshot.py` 支持本地 snapshot，但 OpenAlex 完整 public snapshot 体量约数百 GB compressed，且 works shard 不是按本研究主题预分区，因此不适合在 GitHub Actions 中为 1000 条 Pilot 扫描整个 snapshot。
 
-## 3. Patent 公共 Bulk 路径
+## 3. Patent Bulk 路径实跑与状态纠正
 
-进一步核验 PatentsView 官方代码示例后确认公开 S3 bulk 文件仍可直接访问：
+### 3.1 临时假设
+
+基于 PatentsView 历史代码示例，曾尝试直接访问 legacy S3 bulk：
 
 - `https://s3.amazonaws.com/data.patentsview.org/download/g_patent_abstract.tsv.zip`
 - `https://s3.amazonaws.com/data.patentsview.org/download/g_patent.tsv.zip`
 
-因此 Patent 从“必须等待 API key”调整为：
-
-`PUBLIC_BULK_PIPELINE_READY`
-
-已新增：
+并建立：
 
 - `My_work/03_data/pilot/collect_patents_public_bulk.py`
 - `My_work/03_data/pilot/patent_bulk_input_contract.md`
 - `.github/workflows/wp2-patent-public-bulk.yml`
 
-正式采样逻辑：
+### 3.2 实际执行结果
 
-1. 下载 PatentsView public abstract/patent bulk ZIP；
-2. 流式扫描 abstracts；
-3. 同时要求 AI signal + T01–T15 capability signal；
-4. 每 family 使用 deterministic low-hash pool，避免文件顺序采样偏差；
-5. 回连 g_patent 标题与日期；
-6. 过滤 `patent_date <= 2026-06-30`；
-7. 输出目标约 500 条 patent candidates；
-8. 再进入 semantic screening 和后续 claims/CPC enrichment。
+Patent workflow 已真实运行，Actions run：`33523265236`。
 
-Patent public-bulk workflow 已提交，等待 GitHub Actions 调度/执行状态确认。
+失败发生在首个 bulk 下载步骤：
+
+`g_patent_abstract.tsv.zip -> HTTP 403 Forbidden`
+
+因此必须撤销“legacy public S3 当前可直接访问”的临时判断。
+
+### 3.3 当前官方状态
+
+2026 年 USPTO 已将 PatentsView 数据下载迁移到 USPTO Open Data Portal（ODP）的 Bulk Data Directory；从 2026-06-18 起，ODP 的访问、搜索和数据下载要求 USPTO.gov 账户登录。
+
+因此 Patent 正式状态调整为：
+
+`BLOCKED_AUTHENTICATED_ODP_ACCESS`
+
+而不是 `PUBLIC_BULK_PIPELINE_READY`。
+
+现有 `collect_patents_public_bulk.py` 保留作为 legacy/可替换下载端点的流式筛选实现，但在找到当前可认证 ODP 下载输入或用户提供官方 bulk 文件前，其输出不得计入 Gate 2B。
+
+### 3.4 后续允许路径
+
+1. 使用已登录 USPTO ODP 下载的官方 PatentsView bulk 文件，再运行 `collect_patents_bulk.py`；
+2. 若后续获得可程序化认证的 ODP bulk/API 方式，再将认证接入 workflow；
+3. 第三方 mirror 最多只能用于 WP2 临时 taxonomy sanity check，不得替代 WP3 正式官方 patent 数据，除非重新进行 provenance 风险评估并修改协议。
 
 ## 4. 当前 Gate 2B 状态
 
@@ -85,12 +98,12 @@ Patent public-bulk workflow 已提交，等待 GitHub Actions 调度/执行状�
 - 280 条正式 O/V 子批次；
 - compact annotation queue 生成器；
 - OpenAlex credential-aware workflow；
-- Patent public bulk collector/workflow。
+- Patent bulk parser/normalizer 和真实访问失败验证。
 
 仍需：
 
 - O/V 扩容结果完成并落库；
-- Patent public bulk 500 条执行验证；
+- Patent 官方 bulk 约500条（当前阻塞于 authenticated ODP access）；
 - OpenAlex ~1000 条 Science Pilot（当前缺 API key）；
 - >=300 gold labels；
 - Precision >=0.90；
