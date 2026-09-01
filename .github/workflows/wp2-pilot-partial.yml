@@ -12,7 +12,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -28,24 +28,24 @@ jobs:
       - name: Verify Pilot logic before collection
         working-directory: My_work/03_data/pilot
         run: python -m unittest -v test_pilot_logic.py
-      - name: Collect formal GitHub sample with AI anchors
+      - name: Collect expanded formal GitHub sample
         working-directory: My_work/03_data/pilot
-        run: python collect_github.py --per-family 14 --max-total 140 --max-auxiliary 60 --cutoff 2026-06-30
-      - name: Collect formal windowed NVD sample
+        run: python collect_github.py --per-family 36 --max-total 450 --max-auxiliary 100 --cutoff 2026-06-30
+      - name: Collect quota-balanced formal NVD sample
         working-directory: My_work/03_data/pilot
-        run: python collect_nvd.py --max-total 140 --per-cwe 5 --formal-windowed
+        run: python collect_nvd.py --max-total 500 --per-cwe 12 --formal-windowed
       - name: Materialize VDP at research cutoff
         working-directory: My_work/03_data/pilot
         run: python materialize_vdp_at_cutoff.py --input output/nvd_candidates.jsonl --cutoff 2026-06-30 --out output/vdp_at_2026-06-30.jsonl
-      - name: Screen formal partial sample with hard AI gate
+      - name: Screen expanded formal sample
         working-directory: My_work/03_data/pilot
         run: python screen_candidates.py output/github_candidates.jsonl output/vdp_at_2026-06-30.jsonl
       - name: Summarize Pilot batch
         working-directory: My_work/03_data/pilot
         run: python summarize_pilot.py --input output/pilot_screened.jsonl --out output/pilot_summary.json
-      - name: Build partial manual review queue
+      - name: Build 300-record compact manual review queue
         working-directory: My_work/03_data/pilot
-        run: python build_review_queue.py --input output/pilot_screened.jsonl --n 220
+        run: python build_review_queue.py --input output/pilot_screened.jsonl --n 300
       - name: Write run metadata
         working-directory: My_work/03_data/pilot
         run: |
@@ -55,15 +55,15 @@ jobs:
           meta = {
             'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'sources': ['github', 'nvd'],
-            'mode': 'FORMAL_PARTIAL_HISTORICAL_PILOT_HARDENED',
+            'mode': 'FORMAL_EXPANDED_HISTORICAL_PILOT',
             'research_cutoff': '2026-06-30',
-            'target': {'github_main': 140, 'nvd': 140, 'github_auxiliary_cap': 60},
+            'target': {'github_main': 450, 'nvd': 500, 'github_auxiliary_cap': 100, 'review_queue': 300},
             'taxonomy_version': '1.1',
             'keyword_version': '1.1',
             'github_rule': 'family capability term x AI search anchor; semantic hard AI gate; created_at <= 2026-06-30; mutable popularity metrics excluded from historical feature claims',
-            'nvd_rule': 'deterministic <=120-day publication windows spanning 2012Q1-2026Q2',
-            'vdp_materialization': 'CISA kev-data Git snapshot when cutoff is covered by mirror history; explicitly flagged dateAdded approximation before mirror history; EPSS(date=cutoff) when structurally available',
-            'note': 'Hardened GitHub+VDP sub-batch for Gate 2B. Full Gate still requires OpenAlex and Patent supply plus >=300 finalized gold-reviewed records.'
+            'nvd_rule': 'quota-balanced W01-W07 sampling across deterministic <=120-day publication windows spanning 2012Q1-2026Q2',
+            'vdp_materialization': 'point-in-time KEV/EPSS at 2026-06-30 with explicit historical semantics',
+            'note': 'Expanded O/V Gate 2B batch. Full Gate still requires OpenAlex and Patent supply and completion of gold labels/metrics.'
           }
           (out / 'partial_run_metadata.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
           PY
@@ -75,7 +75,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No generated changes to commit.'
           else
-            git commit -m 'WP2: collect hardened formal partial historical Pilot batch'
+            git commit -m 'WP2: expand formal GitHub and VDP Pilot batch'
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
