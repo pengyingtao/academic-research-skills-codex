@@ -1,0 +1,76 @@
+name: WP2 OpenAlex Pilot Collection
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-openalex-pilot.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Check OpenAlex credential
+        id: keycheck
+        shell: bash
+        run: |
+          if [ -n "$OPENALEX_API_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Collect formal OpenAlex Pilot
+        if: steps.keycheck.outputs.available == 'true'
+        working-directory: My_work/03_data/pilot
+        run: python collect_openalex.py --per-family 90 --max-total 1000
+      - name: Screen OpenAlex Pilot
+        if: steps.keycheck.outputs.available == 'true'
+        working-directory: My_work/03_data/pilot
+        run: python screen_candidates.py output/openalex_candidates.jsonl
+      - name: Write OpenAlex status
+        working-directory: My_work/03_data/pilot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, datetime
+          out = pathlib.Path('output')
+          has_key = bool(os.environ.get('OPENALEX_API_KEY'))
+          status = {
+            'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'source': 'openalex',
+            'target': 1000,
+            'research_cutoff': '2026-06-30',
+            'status': 'COLLECTED' if has_key else 'BLOCKED_CREDENTIAL',
+            'dependency': None if has_key else 'Repository secret OPENALEX_API_KEY is not configured.',
+            'note': 'OpenAlex free REST API requires an API key. Full public snapshot is intentionally not downloaded in Actions because it is hundreds of GB compressed.'
+          }
+          (out / 'openalex_pilot_status.json').write_text(json.dumps(status, indent=2), encoding='utf-8')
+          PY
+      - name: Persist OpenAlex outputs/status
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/openalex_* || true
+          if git diff --cached --quiet; then
+            echo 'No OpenAlex changes to commit.'
+          else
+            git commit -m 'WP2: update OpenAlex Pilot status/data'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
