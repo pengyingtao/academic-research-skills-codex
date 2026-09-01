@@ -1,15 +1,20 @@
 {
-  "run_at_utc": "2026-09-01T14:22:03.020852+00:00",
+  "run_at_utc": "2026-09-01T14:40:12.155807+00:00",
   "sources": [
     "github",
     "nvd"
   ],
+  "mode": "FORMAL_PARTIAL_HISTORICAL_PILOT",
+  "research_cutoff": "2026-06-30",
   "target": {
-    "github": 120,
-    "nvd": 120
+    "github_main": 140,
+    "nvd": 140,
+    "github_auxiliary_cap": 60
   },
   "taxonomy_version": "1.1",
   "keyword_version": "1.1",
-  "vdp_enrichment_semantics": "CURRENT_SANITY_ONLY",
-  "note": "Partial Gate 2B batch. OpenAlex requires OPENALEX_API_KEY; patents require bulk data or existing PatentsView key. Historical folds must use point-in-time KEV/EPSS, not these current enriched values."
+  "github_rule": "created_at <= 2026-06-30; mutable popularity metrics remain current-as-observed and are not historical features",
+  "nvd_rule": "deterministic <=120-day publication windows spanning 2012Q1-2026Q2",
+  "vdp_materialization": "KEV(dateAdded<=cutoff) + EPSS(date=cutoff); pre-EPSS eras structurally missing",
+  "note": "This batch can count toward Gate 2B source/schema validation. Full Gate still requires OpenAlex and Patent supply plus >=300 gold-reviewed records."
 }
