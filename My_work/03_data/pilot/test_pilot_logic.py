@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 
+from collect_github import build_search_query
 from collect_nvd import weakness_group
 from collect_patents_bulk import compile_family_patterns, normalize_date
 from common import load_queries
@@ -28,6 +29,12 @@ class PilotLogicTests(unittest.TestCase):
 
     def test_normalize_compact_patent_date(self) -> None:
         self.assertEqual(normalize_date("20240630"), "2024-06-30")
+
+    def test_github_query_requires_ai_anchor_and_cutoff(self) -> None:
+        q = build_search_query("threat hunting", "machine learning", "2026-06-30")
+        self.assertIn('"threat hunting"', q)
+        self.assertIn('"machine learning"', q)
+        self.assertIn("created:<=2026-06-30", q)
 
     def test_supply_without_ai_anchor_is_rejected(self) -> None:
         row = {
