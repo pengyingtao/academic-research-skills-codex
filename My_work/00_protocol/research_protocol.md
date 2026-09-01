@@ -1,4 +1,4 @@
-# Research Protocol
+# Research Protocol V2
 
 ## 1. 研究题目
 
@@ -8,79 +8,153 @@
 
 > Evidence-Calibrated Dynamic Simulation for Technology Foresight: A Study of AI-Enabled Cybersecurity Technologies
 
-## 2. 研究定位
+## 2. WP1 后的方法定位修订
 
-本研究定位为方法创新型技术预见研究。核心目标不是简单描述 AI+网络安全热点，而是提出并验证一种“证据校准动态推演”方法，用多源历史科技情报学习技术演化参数，并通过历史回测、基线比较、消融实验和多情景 Monte Carlo 推演对方法进行验证。
+WP1 多轮方法新颖性检索结论为 `MODIFY`：题目保留，但原方案中若干单独方法组件已有明确先例，不能继续作为首创贡献。
 
-应用场景限定为 AI for Cybersecurity，而非 Security of AI。
+本研究的正式定位调整为：
 
-## 3. 核心方法
+> **以角色化多源技术状态为基础，从历史证据学习技术动力学，将其转换为可干预的概率动态推演，并通过严格历史重演、概率校准和情景敏感性验证其作为技术预见方法的有效性。**
 
-主方法暂定命名：
+应用场景继续限定为 AI for Cybersecurity，而非 Security of AI。
 
-- ECDS-TF：Evidence-Calibrated Dynamic Simulation for Technology Foresight
+## 3. 不再作为创新主张的组件
 
-核心组成：
+以下内容仅作为方法组成或 baseline，不宣称首次：
 
-1. STOV 多源科技情报框架：Science、Technology、Open Source、Vulnerability；
-2. 跨源技术实体对齐；
-3. 技术季度状态向量；
-4. Lead-Lag 跨源领先—滞后学习；
-5. Temporal Heterogeneous Graph；
-6. Evidence Calibration；
-7. Dynamic State Transition；
-8. Monte Carlo Scenario Simulation；
-9. 历史回测与不确定性评估。
+- System Dynamics / Simulation；
+- Agent-Based Modeling；
+- 数据校准 ABM；
+- 多源数据融合；
+- Papers–Patents–GitHub；
+- Lead-Lag；
+- Dynamic/Heterogeneous GNN；
+- Probabilistic Technology Forecasting；
+- Historical Backtesting；
+- LLM Multi-Agent Technology Forecasting；
+- Vulnerability disclosure / cyber risk → security R&D demand；
+- Temporal graph counterfactual intervention。
 
-## 4. 数据范围
+## 4. 核心方法：ECDS-TF
 
-### 4.1 时间范围
+主方法继续命名：
 
-- 历史数据起点：2012Q1
+- **ECDS-TF：Evidence-Calibrated Dynamic Simulation for Technology Foresight**
+
+### 4.1 Layer 1 — Role-aware STOV Technology State
+
+四源被赋予不同演化角色：
+
+- `S — Science`：科学知识生产与研究能力；
+- `T — Technology/Patent`：技术化、产权化与组织研发投入；
+- `O — Open Source`：工程实现、开发者扩散与工具可用性；
+- `V — Vulnerability Demand Pressure`：现实安全问题、漏洞利用与修复需求压力。
+
+技术季度状态：
+
+\[
+X_{k,t}=[S_{k,t},T_{k,t},O_{k,t},VDP_{k,t}]
+\]
+
+### 4.2 Vulnerability Demand Pressure（VDP）
+
+不直接使用 CVE count 作为“需求”。正式定义候选：
+
+\[
+VDP_{k,t}=f(CVE_{k,t},KEV_{k,t},Severity_{k,t},Exploitability_{k,t},Exposure_{k,t},RemediationGap_{k,t})
+\]
+
+其中：
+
+- CVE：漏洞披露规模；
+- KEV：已确认实际利用；
+- Severity：CVSS/影响；
+- Exploitability：EPSS/LEV 或可获得代理；
+- Exposure：受影响产品、平台或生态广度；
+- RemediationGap：披露、利用、修复之间的时间差。
+
+VDP 的贡献不是提出“漏洞会推动安全研发”的新理论，而是将已知机制形式化为可被历史验证的技术预见状态变量。
+
+### 4.3 Layer 2 — Relational Encoder
+
+Temporal/Heterogeneous Graph 的作用调整为关系编码器，而非创新主角。
+
+负责学习：
+
+- technology interaction；
+- convergence relationships；
+- neighborhood influence；
+- cross-source timing / lag representation。
+
+### 4.4 Layer 3 — Evidence-Calibrated State Transition
+
+核心状态模型：
+
+\[
+X_{t+1}=F_\theta(X_t,G_t,Z_t)+\epsilon_t
+\]
+
+其中：
+
+- \(X_t\)：技术状态；
+- \(G_t\)：技术关系图；
+- \(Z_t\)：外部环境/情景变量；
+- \(\epsilon_t\)：随机不确定性。
+
+### 4.5 Layer 4 — Intervenable Forward Simulation
+
+学习到的 dynamics 必须可以显式施加情景 shock：
+
+- AI capability shock；
+- vulnerability/threat shock；
+- OSS diffusion shock；
+- regulation/constraint shock。
+
+最终通过概率 rollout / Monte Carlo 产生 2027–2030 轨迹分布。
+
+## 5. 数据范围
+
+### 5.1 时间范围
+
+- 历史起点：2012Q1
 - 历史观测终点：2026Q2
-- 时间粒度：季度
-- 最终未来推演：2026Q3–2030Q4
+- 时间粒度：Quarter
+- 前瞻窗口：2026Q3–2030Q4
 
-2026Q3 及之后数据不得作为当前冻结版本的历史训练信息。
-
-### 4.2 数据源
+### 5.2 数据源
 
 - Science：OpenAlex
-- Technology：PatentsView/公开专利数据
+- Technology：PatentsView / USPTO 等公开专利数据
 - Open Source：GitHub
-- Vulnerability：NVD CVE/CWE/KEV
+- Vulnerability：NVD CVE/CWE、CISA KEV、EPSS/LEV 等可获取利用概率信号
 
-### 4.3 预测对象
+### 5.3 预测单位
 
-预测对象为统一 Technology Entity，不以单篇论文、单个专利或单个仓库作为主要预测单位。
+统一 Technology Entity × Quarter。
 
-## 5. 主要预测任务
+## 6. 核心预测任务
 
-### Task A：Technology Growth Forecasting
+### Task A — Technology Growth Forecasting
 
-预测技术未来 4、8、12 个季度增长状态。
+预测未来 4/8/12 季度技术增长。
 
-主指标：MAE、RMSE、sMAPE。
+指标：MAE、RMSE、sMAPE。
 
-### Task B：Emerging Technology Detection
+### Task B — Emerging Technology Detection
 
-识别未来进入快速成长阶段的技术。
+识别未来快速成长技术。
 
-主指标：Precision@K、Recall@K、NDCG@K、AUPRC。
+指标：Precision@K、Recall@K、NDCG@K、AUPRC。
 
-### Task C：Technology Convergence Forecasting
+### Task C — Technology Convergence Forecasting
 
-预测未来技术之间的融合关系。
+预测技术融合关系。
 
-主指标：AUC、F1、Hits@K。
+指标：AUC、F1、Hits@K。
 
-### 暂不作为主要监督任务
+成熟度不作为主要监督标签，仅作为最终综合解释指标。
 
-技术成熟度暂不作为主要监督标签。成熟度仅作为后期综合指数或2030推演结果之一，避免因主观 maturity ground truth 导致自定义标签循环论证。
-
-## 6. 历史回测
-
-核心折叠：
+## 7. 历史重演协议
 
 | Fold | Train | Forecast |
 |---|---|---|
@@ -88,21 +162,24 @@
 | F2 | 2012–2020 | 2021–2023 |
 | F3 | 2012–2022 | 2023–2025 |
 
-后续根据数据量增加 rolling-origin evaluation。
+并增加 rolling-origin supplementary evaluation。
 
-## 7. Temporal Leakage 规则
+本研究不声称“首次历史回测”，而强调 Growth + Emergence + Convergence 在同一 temporal-freeze 协议下进行多任务重演。
 
-对任何历史预测折叠：
+## 8. Temporal Leakage Rules
 
-1. 预测起点后的论文引用数不得进入训练特征；
-2. 预测起点后的 GitHub stars/commits/releases 不得进入训练特征；
-3. 预测起点后的 CVE modified 信息不得回填；
-4. 标准化参数必须仅由训练窗口估计；
-5. taxonomy refinement 不得利用未来技术名称或未来聚类结果反向修改历史标签；
-6. embedding 模型、LLM 或外部知识用于回测时必须记录其可能的时间泄漏风险；
-7. LLM 多智能体不进入正式历史性能排名。
+任何预测折叠必须满足：
 
-## 8. Baseline 体系
+1. 未来论文引用不得回填；
+2. 未来 GitHub stars/commits/releases 不得回填；
+3. CVE modified/KEV 后验状态按预测时点截断；
+4. normalization/statistics 仅用训练窗口估计；
+5. taxonomy refinement 不使用未来概念反标历史；
+6. embeddings/LLM 的知识截止风险必须记录；
+7. LLM agent 不进入主要历史性能排行榜；
+8. 若使用 AgentProphet-style 对照，采用匿名化/history-only 输入并披露 contamination risk。
+
+## 9. Baseline 体系 V2
 
 ### Naive
 - Persistence
@@ -110,8 +187,8 @@
 
 ### Statistical
 - ARIMA
-- Prophet（可选）
-- Bass/S-curve（适用于相应任务时）
+- Prophet
+- Bass/S-curve（适用时）
 
 ### ML
 - XGBoost
@@ -130,14 +207,28 @@
 - ABM-C：Evidence-Calibrated ABM
 
 ### Proposed
-- ECDS-v0
-- ECDS-v1
-- ECDS-TF
+- ECDS-v0：Evidence-Calibrated State Transition
+- ECDS-v1：+ cross-source timing/lag
+- ECDS-TF：+ relational temporal/heterogeneous graph encoder + probabilistic intervention rollout
 
-### Exploratory
-- MAF-TF：LLM Multi-Agent Foresight，仅用于未来情景压力测试。
+### Supplementary Agentic Benchmark
+- AgentProphet-style anonymized/history-only benchmark（Task B，若可严格复现）
 
-## 9. 消融实验
+### Future Scenario Stress Test
+- **MAST：Multi-Agent Scenario Stress Test**
+
+原 MAF-TF 名称停止作为正式方案使用。
+
+MAST 不承担主要预测任务，仅负责发现未参数化的：
+
+- regulation；
+- organizational adoption；
+- liability；
+- commercialization；
+- talent constraints；
+- extreme events。
+
+## 10. 消融实验 V2
 
 至少包含：
 
@@ -145,31 +236,79 @@
 - w/o Science
 - w/o Patent
 - w/o GitHub
-- w/o Vulnerability
-- w/o Lead-Lag
-- w/o Graph
-- w/o Calibration
+- w/o VDP
+- VDP using raw CVE count only
+- VDP w/o KEV/Exploitability
+- w/o Lead-Lag representation
+- w/o Graph Encoder
+- w/o Evidence Calibration
+- deterministic rollout vs probabilistic rollout
 
-## 10. 2030情景推演
+重点检验：
+
+> VDP 是否比简单漏洞数量提供真正增量预测价值。
+
+## 11. Reliability-oriented Evaluation
+
+除传统性能指标外，若模型输出概率/区间，必须增加：
+
+- Brier Score；
+- Expected Calibration Error（ECE，适用时）；
+- reliability diagram；
+- prediction interval coverage；
+- interval width / sharpness；
+- scenario sensitivity；
+- scenario stability。
+
+本研究不宣称这些指标首次用于 forecasting，而是检验其在统一技术预见验证协议中的价值。
+
+## 12. 2030 情景推演
 
 - S0 Baseline
 - S1 AI Acceleration
-- S2 Threat Shock
+- S2 Threat / Vulnerability Shock
 - S3 OSS Acceleration
-- S4 Constraint
+- S4 Constraint / Regulation
 
-每个情景目标 Monte Carlo N=1000，输出概率分布与95%区间，而非单一点预测。
+每个情景 Monte Carlo N≥1000。
 
-## 11. 预期主要贡献
+输出：
 
-1. STOV 多源技术演化证据框架；
-2. ECDS-TF 证据校准动态推演方法；
-3. 面向技术预见的历史回测验证框架；
-4. AI for Cybersecurity 2027–2030 多情景技术演化预见；
-5. 计算式推演与智能体情景压力测试的混合预见范式。
+- growth probability；
+- emergence probability；
+- convergence probability；
+- uncertainty intervals；
+- scenario-dependent trajectory shifts。
 
-## 12. 当前状态
+## 13. WP1 后正式贡献候选
 
-WP0：启动并冻结 V1。
+### C1 — Role-aware STOV Technology State
 
-下一门槛：完成 WP1 文献与方法新颖性验证后，才能正式确认 ECDS-TF 的创新性表述。
+多源不是简单融合，而是不同技术演化机制状态。
+
+### C2 — Exploitation-weighted VDP
+
+将漏洞披露、实际利用、严重度和修复缺口形成可历史检验的技术需求压力变量。
+
+### C3 — Evidence-Calibrated Intervenable Technology Dynamics
+
+将历史学习到的技术 dynamics 转换为可施加情景 shock 的概率 forward simulation。
+
+### C4 — Unified Historical Reconstruction
+
+在同一 temporal freeze 下验证 Growth / Emergence / Convergence。
+
+### C5 — Reliability-oriented Foresight Validation
+
+联合评价 accuracy、ranking、calibration、coverage 与 scenario sensitivity。
+
+### C6 — ECDS-TF + MAST 双轨
+
+量化模型负责基准概率轨迹，agentic stress test 负责不可充分参数化因素的挑战与解释。
+
+## 14. 当前状态
+
+- WP0 V1：已完成；
+- WP1：方法新颖性检索完成，Verdict=`MODIFY`；
+- 本文件：WP0 V2 修订版；
+- 下一步：同步更新 Research Questions 和 Experiment Matrix，随后关闭 WP1 并进入 WP2。
