@@ -8,7 +8,7 @@ from typing import Any
 
 from common import OUT_DIR, load_queries, write_jsonl
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 
 
 def hits(text: str, terms: list[str]) -> list[str]:
@@ -52,6 +52,10 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         if role == "DISCOVERY_ONLY" or artifact == "awesome_list_catalog":
             return reject(row, "AGGREGATOR_NOT_TOOL", "discovery/catalog repository is not core engineering-supply evidence")
 
+        reference_hits = hits(central_text, q["negative_context"].get("reference_feed", []))
+        if reference_hits:
+            return reject(row, "AGGREGATOR_NOT_TOOL", f"paper/reference-feed indicators: {reference_hits[:3]}")
+
         catalog_hits = hits(central_text, q["negative_context"].get("catalog_only", []))
         if catalog_hits:
             return reject(row, "AGGREGATOR_NOT_TOOL", f"catalog/resource-list indicators: {catalog_hits[:3]}")
@@ -82,11 +86,19 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         term_hits = hits(text, cfg["terms"])
         required = cfg.get("required_context") or []
         required_hits = hits(text, required) if required else ["NO_REQUIRED_CONTEXT"]
+
+        # T02 is code-level automated repair. A weak phrase such as patch
+        # validation/remediation advice is insufficient without explicit repair
+        # generation evidence; such records may instead map to T12.
+        if family == "T02" and term_hits:
+            strong_repair_hits = hits(text, q.get("t02_strong_repair_evidence", []))
+            if not strong_repair_hits:
+                term_hits = []
+            else:
+                term_hits = list(dict.fromkeys(term_hits + strong_repair_hits))
+
         score = len(term_hits) * 2 + min(2, len(required_hits))
 
-        # System-level SOC-agent priority is applied only to explicit SOC context,
-        # never to arbitrary substrings such as "associated". It also requires
-        # agentic/autonomous language in the central project description.
         explicit_soc_agent = (
             family == "T09"
             and has_soc_context(central_text)
