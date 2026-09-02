@@ -1,0 +1,136 @@
+{
+  "source": "openalex",
+  "collection_design": "ONE_BOOLEAN_SEARCH_PER_FAMILY",
+  "access_mode": "KEYLESS_BUDGETED",
+  "research_cutoff": "2026-06-30",
+  "target": 1000,
+  "families_attempted": 15,
+  "families_passed": 15,
+  "raw_rows_across_family_queries": 1500,
+  "unique_rows_before_cap": 1342,
+  "selected_rows": 1000,
+  "query_status": [
+    {
+      "family": "T01",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 12698,
+      "cost_usd": 0.001,
+      "query": "(\"vulnerability detection\" OR \"vulnerability discovery\" OR \"vulnerability localization\" OR \"AI-guided fuzzing\" OR \"exploitability prediction\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T02",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 3792,
+      "cost_usd": 0.001,
+      "query": "(\"automated program repair\" OR \"automated patch generation\" OR \"vulnerability repair\" OR \"security patch generation\" OR \"patch validation\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T03",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 30501,
+      "cost_usd": 0.001,
+      "query": "(\"malware detection\" OR \"malware classification\" OR \"ransomware detection\" OR \"malware analysis\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T04",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 104568,
+      "cost_usd": 0.001,
+      "query": "(\"intrusion detection\" OR \"network anomaly detection\" OR \"encrypted traffic classification\" OR \"lateral movement detection\" OR UEBA) AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T05",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 9000,
+      "cost_usd": 0.001,
+      "query": "(\"phishing detection\" OR \"malicious URL detection\" OR \"business email compromise\" OR \"impersonation detection\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T06",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 9964,
+      "cost_usd": 0.001,
+      "query": "(\"botnet detection\" OR \"DDoS detection\" OR \"command and control detection\" OR \"malicious infrastructure\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T07",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 6414,
+      "cost_usd": 0.001,
+      "query": "(\"cyber threat intelligence\" OR \"IOC extraction\" OR \"TTP extraction\" OR \"threat knowledge graph\" OR \"threat forecasting\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T08",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 3411,
+      "cost_usd": 0.001,
+      "query": "(\"threat hunting\" OR \"hunt hypothesis\" OR \"attack chain reconstruction\" OR \"autonomous investigation\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T09",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 251,
+      "cost_usd": 0.001,
+      "query": "(\"security copilot\" OR \"SOC copilot\" OR \"SOC agent\" OR \"autonomous SOC\" OR \"security operations agent\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T10",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 97835,
+      "cost_usd": 0.001,
+      "query": "(\"automated incident response\" OR \"security orchestration\" OR SOAR OR \"response playbook\" OR \"autonomous containment\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T11",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 18156,
+      "cost_usd": 0.001,
+      "query": "(\"digital forensics\" OR \"memory forensics\" OR \"disk forensics\" OR \"forensic timeline\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T12",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 1572,
+      "cost_usd": 0.001,
+      "query": "(\"attack surface management\" OR \"exposure management\" OR \"cyber risk prediction\" OR \"vulnerability prioritization\" OR \"vulnerability intelligence\" OR \"vulnerability risk scoring\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T13",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 5223,
+      "cost_usd": 0.001,
+      "query": "(\"adaptive authentication\" OR \"identity anomaly detection\" OR \"privilege misuse\" OR \"behavioral biometrics\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T14",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 6433,
+      "cost_usd": 0.001,
+      "query": "(\"cyber deception\" OR \"intelligent honeypot\" OR \"moving target defense\" OR \"adaptive defense\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    },
+    {
+      "family": "T15",
+      "status": "PASS",
+      "returned": 100,
+      "available_count": 3940,
+      "cost_usd": 0.001,
+      "query": "(\"secure code review\" OR \"software security analysis\" OR SAST OR DAST OR \"software supply chain security\" OR \"secret detection\") AND (\"machine learning\" OR \"artificial intelligence\" OR \"large language model\" OR \"deep learning\")"
+    }
+  ],
+  "budget_note": "At most one billable full-text search call per attempted technology family; per_page=100.",
+  "guardrail": "Pilot candidate retrieval only; taxonomy accuracy requires independent human gold review."
+}
