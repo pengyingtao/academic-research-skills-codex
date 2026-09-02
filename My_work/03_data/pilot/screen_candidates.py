@@ -22,6 +22,7 @@ def reject(row: dict[str, Any], fp_type: str, reason: str, *, confidence: str = 
         "primary_technology_id": None,
         "secondary_technology_ids": [],
         "needs_review": confidence != "REJECT",
+        "keyword_version": "1.3",
     })
     return row
 
@@ -29,42 +30,46 @@ def reject(row: dict[str, Any], fp_type: str, reason: str, *, confidence: str = 
 def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
     title = row.get("title_or_name", "") or ""
     evidence = row.get("text_evidence", "") or ""
-    text = f"{title}\n{evidence}\n{' '.join(row.get('topics') or [])}".lower()
+    topics = " ".join(row.get("topics") or [])
+    text = f"{title}\n{evidence}\n{topics}".lower()
+    # For GitHub, the central project identity is approximated by title + the
+    # first 2500 chars of description/README. AI mentioned only deep in a README
+    # is insufficient to classify a conventional security tool as AI-enabled.
+    central_text = f"{title}\n{evidence[:2500]}\n{topics}".lower()
     ai_hits = hits(text, q["ai_terms"])
+    central_ai_hits = hits(central_text, q["ai_terms"])
     offensive = hits(text, q["negative_context"]["offensive_only"])
     security_ai = hits(text, q["negative_context"]["security_of_ai"])
 
-    # GitHub-specific hygiene is applied before family scoring. These records may
-    # be useful for discovery, training or ecosystem context but should not be
-    # counted as engineering-supply evidence in the core O layer.
     if row.get("source_type") == "open_source":
         artifact = row.get("artifact_type")
         role = row.get("analysis_role")
         if role == "DISCOVERY_ONLY" or artifact == "awesome_list_catalog":
             return reject(row, "AGGREGATOR_NOT_TOOL", "discovery/catalog repository is not core engineering-supply evidence")
 
-        catalog_hits = hits(text, q["negative_context"].get("catalog_only", []))
+        catalog_hits = hits(central_text, q["negative_context"].get("catalog_only", []))
         if catalog_hits:
             return reject(row, "AGGREGATOR_NOT_TOOL", f"catalog/resource-list indicators: {catalog_hits[:3]}")
 
         native = (row.get("source_native_id") or "").lower()
         parts = native.split("/", 1)
-        profile_hits = hits(text, q["negative_context"].get("personal_profile", []))
+        profile_hits = hits(central_text, q["negative_context"].get("personal_profile", []))
         is_profile_repo = len(parts) == 2 and parts[0] == parts[1]
         if is_profile_repo and profile_hits:
             return reject(row, "PERSONAL_PROFILE", f"profile repository indicators: {profile_hits[:3]}")
 
-        education_hits = hits(text, q["negative_context"].get("education_only", []))
+        education_hits = hits(central_text, q["negative_context"].get("education_only", []))
         operational_terms = [
             "malware detection", "intrusion detection", "phishing detection", "threat hunting",
             "incident response", "vulnerability detection", "vulnerability repair", "secure code",
             "digital forensics", "security orchestration", "threat intelligence", "soc agent",
         ]
-        if education_hits and not hits(text, operational_terms):
+        if education_hits and not hits(central_text, operational_terms):
             return reject(row, "EDUCATIONAL_ONLY", f"education/training artifact without a primary defensive capability: {education_hits[:3]}")
 
-    # Supply-side records must satisfy the protocol's AI-anchor requirement.
-    if not ai_hits:
+        if not central_ai_hits:
+            return reject(row, "NO_AI_SIGNAL", "AI/ML signal is absent from the central project description; deep/incidental README mentions do not satisfy the GitHub AI gate")
+    elif not ai_hits:
         return reject(row, "NO_AI_SIGNAL", "cybersecurity capability found but no AI-method anchor")
 
     family_scores: list[tuple[str, int, list[str]]] = []
@@ -73,6 +78,12 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         required = cfg.get("required_context") or []
         required_hits = hits(text, required) if required else ["NO_REQUIRED_CONTEXT"]
         score = len(term_hits) * 2 + min(2, len(required_hits))
+        # Agentic/autonomous SOC is a system-level capability. Prevent narrow
+        # sub-capabilities such as DDoS detection from dominating its primary label.
+        if family == "T09" and "soc" in central_text and any(x in central_text for x in ["agent", "autonomous", "copilot", "multi-agent"]):
+            score += 4
+            term_hits = term_hits + ["SOC_AGENT_PRIORITY"]
+            required_hits = required_hits or ["SOC"]
         if term_hits and required_hits:
             family_scores.append((family, score, term_hits + required_hits[:2]))
     family_scores.sort(key=lambda x: x[1], reverse=True)
@@ -84,11 +95,12 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         row["use_orientation"] = "OFFENSIVE"
         return reject(row, "OFFENSIVE_ONLY", f"offensive-primary terms: {offensive[:3]}")
 
+    active_ai_hits = central_ai_hits if row.get("source_type") == "open_source" else ai_hits
     if not family_scores:
         return reject(
             row,
             "GENERIC_AI",
-            f"AI signal {ai_hits[:3]} present but no AI-for-cybersecurity family passed term/context rules",
+            f"AI signal {active_ai_hits[:3]} present but no AI-for-cybersecurity family passed term/context rules",
             confidence="LOW",
         )
 
@@ -101,11 +113,11 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         "primary_technology_id": best[0],
         "secondary_technology_ids": secondaries,
         "use_orientation": orientation,
-        "ai_method_tags": ai_hits,
-        "screening_reason": f"AI={ai_hits[:3]}; family={best[2][:5]}",
+        "ai_method_tags": active_ai_hits,
+        "screening_reason": f"AI={active_ai_hits[:3]}; family={best[2][:5]}",
         "false_positive_type": None,
         "needs_review": bool(secondaries or offensive),
-        "keyword_version": "1.2",
+        "keyword_version": "1.3",
     })
     return row
 
@@ -121,9 +133,8 @@ def main() -> None:
             if not line.strip():
                 continue
             row = json.loads(line)
-            row["keyword_version"] = "1.2"
+            row["keyword_version"] = "1.3"
             if row.get("source_type") == "vulnerability":
-                # V is demand pressure only; never assign T01-T15 ground truth.
                 row["in_scope"] = True
                 row["confidence"] = "MEDIUM"
                 row["screening_reason"] = "VDP demand record; not T01-T15 labeled"
