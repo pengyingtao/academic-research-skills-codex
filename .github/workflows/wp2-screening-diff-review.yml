@@ -1,0 +1,105 @@
+name: WP2 Screening Diff Review
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-screening-diff-review.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Materialize v1.1 record-level baseline
+        run: |
+          git show f7d503899c38404bd1526dc2c1f94529cc2ab89e:My_work/03_data/pilot/output/pilot_screened.jsonl > /tmp/pilot_screened_v1_1.jsonl
+      - name: Build changed-record review set
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import csv, json
+          from collections import Counter
+          from pathlib import Path
+
+          def load(path):
+              out = {}
+              for line in Path(path).read_text(encoding='utf-8').splitlines():
+                  if line.strip():
+                      r = json.loads(line)
+                      out[(r.get('source_type'), r.get('source_native_id'))] = r
+              return out
+
+          old = load('/tmp/pilot_screened_v1_1.jsonl')
+          new = load('output/pilot_screened.jsonl')
+          fields = ['in_scope','primary_technology_id','secondary_technology_ids','use_orientation','false_positive_type','confidence']
+          changed = []
+          change_types = Counter()
+          for key in sorted(set(old) & set(new)):
+              a, b = old[key], new[key]
+              diffs = [f for f in fields if a.get(f) != b.get(f)]
+              if not diffs:
+                  continue
+              for f in diffs:
+                  change_types[f] += 1
+              changed.append({
+                  'source_type': b.get('source_type'),
+                  'source_native_id': b.get('source_native_id'),
+                  'event_date': b.get('event_date'),
+                  'title_or_name': b.get('title_or_name'),
+                  'evidence_excerpt': (b.get('text_evidence') or '').replace('\n',' ')[:1200],
+                  'candidate_family': b.get('candidate_family'),
+                  'changed_fields': diffs,
+                  'v1_1_in_scope': a.get('in_scope'),
+                  'v1_2_in_scope': b.get('in_scope'),
+                  'v1_1_primary': a.get('primary_technology_id'),
+                  'v1_2_primary': b.get('primary_technology_id'),
+                  'v1_1_false_positive': a.get('false_positive_type'),
+                  'v1_2_false_positive': b.get('false_positive_type'),
+                  'v1_1_confidence': a.get('confidence'),
+                  'v1_2_confidence': b.get('confidence'),
+                  'review_decision': None,
+                  'review_note': None,
+              })
+
+          outdir = Path('analysis')
+          outdir.mkdir(exist_ok=True)
+          with (outdir/'screening_changed_records_v1_1_to_v1_2.jsonl').open('w', encoding='utf-8') as f:
+              for r in changed:
+                  f.write(json.dumps(r, ensure_ascii=False)+'\n')
+          if changed:
+              with (outdir/'screening_changed_records_v1_1_to_v1_2.csv').open('w', encoding='utf-8-sig', newline='') as f:
+                  w = csv.DictWriter(f, fieldnames=list(changed[0]))
+                  w.writeheader(); w.writerows(changed)
+          summary = {
+              'n_common_records': len(set(old) & set(new)),
+              'n_changed_records': len(changed),
+              'change_field_counts': dict(change_types),
+              'review_status': 'PENDING_TARGETED_REVIEW',
+              'note': 'Changed records are the highest-priority regression review set for keyword v1.2.'
+          }
+          (outdir/'screening_changed_records_summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
+          print(json.dumps(summary, indent=2))
+          PY
+      - name: Commit diff-review set
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/analysis/screening_changed_records_*
+          if git diff --cached --quiet; then
+            echo 'No changed-record outputs.'
+          else
+            git commit -m 'WP2: isolate keyword v1.2 changed records for review'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
