@@ -1,0 +1,158 @@
+{
+  "n_v1_1": 950,
+  "n_v1_2": 950,
+  "scope": {
+    "False": {
+      "v1_1": 181,
+      "v1_2": 162,
+      "delta": -19
+    },
+    "True": {
+      "v1_1": 769,
+      "v1_2": 788,
+      "delta": 19
+    }
+  },
+  "confidence": {
+    "HIGH": {
+      "v1_1": 144,
+      "v1_2": 165,
+      "delta": 21
+    },
+    "LOW": {
+      "v1_1": 56,
+      "v1_2": 53,
+      "delta": -3
+    },
+    "MEDIUM": {
+      "v1_1": 625,
+      "v1_2": 623,
+      "delta": -2
+    },
+    "REJECT": {
+      "v1_1": 125,
+      "v1_2": 109,
+      "delta": -16
+    }
+  },
+  "false_positive": {
+    "AGGREGATOR_NOT_TOOL": {
+      "v1_1": 0,
+      "v1_2": 11,
+      "delta": 11
+    },
+    "GENERIC_AI": {
+      "v1_1": 56,
+      "v1_2": 53,
+      "delta": -3
+    },
+    "NONE": {
+      "v1_1": 269,
+      "v1_2": 288,
+      "delta": 19
+    },
+    "NO_AI_SIGNAL": {
+      "v1_1": 105,
+      "v1_2": 55,
+      "delta": -50
+    },
+    "OFFENSIVE_ONLY": {
+      "v1_1": 12,
+      "v1_2": 9,
+      "delta": -3
+    },
+    "PERSONAL_PROFILE": {
+      "v1_1": 0,
+      "v1_2": 29,
+      "delta": 29
+    },
+    "SECURITY_OF_AI": {
+      "v1_1": 8,
+      "v1_2": 5,
+      "delta": -3
+    }
+  },
+  "primary_family": {
+    "NONE": {
+      "v1_1": 181,
+      "v1_2": 162,
+      "delta": -19
+    },
+    "T01": {
+      "v1_1": 25,
+      "v1_2": 21,
+      "delta": -4
+    },
+    "T02": {
+      "v1_1": 8,
+      "v1_2": 9,
+      "delta": 1
+    },
+    "T03": {
+      "v1_1": 39,
+      "v1_2": 41,
+      "delta": 2
+    },
+    "T04": {
+      "v1_1": 47,
+      "v1_2": 45,
+      "delta": -2
+    },
+    "T05": {
+      "v1_1": 25,
+      "v1_2": 24,
+      "delta": -1
+    },
+    "T06": {
+      "v1_1": 13,
+      "v1_2": 15,
+      "delta": 2
+    },
+    "T07": {
+      "v1_1": 12,
+      "v1_2": 17,
+      "delta": 5
+    },
+    "T08": {
+      "v1_1": 16,
+      "v1_2": 19,
+      "delta": 3
+    },
+    "T09": {
+      "v1_1": 10,
+      "v1_2": 19,
+      "delta": 9
+    },
+    "T10": {
+      "v1_1": 25,
+      "v1_2": 26,
+      "delta": 1
+    },
+    "T11": {
+      "v1_1": 20,
+      "v1_2": 18,
+      "delta": -2
+    },
+    "T12": {
+      "v1_1": 8,
+      "v1_2": 9,
+      "delta": 1
+    },
+    "T13": {
+      "v1_1": 10,
+      "v1_2": 13,
+      "delta": 3
+    },
+    "T14": {
+      "v1_1": 2,
+      "v1_2": 2,
+      "delta": 0
+    },
+    "T15": {
+      "v1_1": 9,
+      "v1_2": 10,
+      "delta": 1
+    }
+  },
+  "interpretation_guardrail": "This is a screening-regression comparison, not accuracy evidence. Human gold review is still required."
+}

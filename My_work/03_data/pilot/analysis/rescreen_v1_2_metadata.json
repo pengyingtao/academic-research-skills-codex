@@ -1,0 +1,12 @@
+{
+  "run_at_utc": "2026-09-02T03:46:45.516402+00:00",
+  "mode": "RESCREEN_EXISTING_FORMAL_CORPUS",
+  "taxonomy_version": "1.1",
+  "keyword_version": "1.2",
+  "input_sources": [
+    "output/github_candidates.jsonl",
+    "output/vdp_at_2026-06-30.jsonl"
+  ],
+  "external_api_calls": false,
+  "note": "Regression-only rescreen after XAI/AI phrase recall expansion and GitHub hygiene exclusions."
+}
