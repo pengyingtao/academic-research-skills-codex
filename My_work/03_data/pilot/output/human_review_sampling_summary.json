@@ -1,0 +1,68 @@
+{
+  "n": 300,
+  "source_counts": {
+    "open_source": 223,
+    "vulnerability": 77
+  },
+  "supply_n": 223,
+  "vdp_n": 77,
+  "candidate_family_support": {
+    "T01": 24,
+    "T02": 23,
+    "T03": 14,
+    "T04": 18,
+    "T05": 23,
+    "T06": 18,
+    "T07": 19,
+    "T08": 14,
+    "T09": 16,
+    "T10": 18,
+    "T11": 12,
+    "T12": 16,
+    "T13": 8,
+    "T14": 0,
+    "T15": 0
+  },
+  "auto_primary_family_support": {
+    "T01": 10,
+    "T02": 5,
+    "T03": 12,
+    "T04": 13,
+    "T05": 9,
+    "T06": 1,
+    "T07": 3,
+    "T08": 4,
+    "T09": 15,
+    "T10": 6,
+    "T11": 4,
+    "T12": 6,
+    "T13": 4,
+    "T14": 0,
+    "T15": 2
+  },
+  "auto_primary_none": 129,
+  "confidence_counts": {
+    "LOW": 24,
+    "HIGH": 36,
+    "REJECT": 105,
+    "MEDIUM": 58
+  },
+  "sampling_reason_counts": {
+    "random_supply": 120,
+    "low_medium": 80,
+    "family_boundary": 50,
+    "dual_use_offensive": 25,
+    "vdp_mapping": 25,
+    "top_up": 86
+  },
+  "candidate_families_below_10": [
+    "T13",
+    "T14",
+    "T15"
+  ],
+  "candidate_families_below_5": [
+    "T14",
+    "T15"
+  ],
+  "interpretation_guardrail": "These are sampling supports based on candidate/automatic labels, not gold family supports. Final gold support may differ after human review."
+}
