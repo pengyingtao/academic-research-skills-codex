@@ -1,9 +1,11 @@
 {
   "n": 300,
   "review_design": "BLINDED_TO_MODEL_PREDICTION",
-  "screening_version": "1.3.1",
+  "screening_version": "1.3.2",
+  "review_id_semantics": "stable SHA1-derived ID from source_type + source_native_id",
   "blind_file": "human_review_blind_300.csv",
   "prediction_map": "human_review_prediction_map_300.jsonl",
   "merge_key": "review_id",
-  "rule": "Do not open prediction_map during first-pass independent review. Merge only after gold_status is completed."
+  "rule": "Do not open prediction_map during first-pass independent review. Merge only after gold_status is completed.",
+  "guardrail": "Regenerating the prediction map for a new screening version must not change review_id for the same source record."
 }
