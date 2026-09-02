@@ -1,0 +1,64 @@
+{
+  "n": 950,
+  "by_source": {
+    "open_source": 450,
+    "vulnerability": 500
+  },
+  "by_scope": {
+    "False": 181,
+    "True": 769
+  },
+  "by_confidence": {
+    "REJECT": 125,
+    "LOW": 56,
+    "MEDIUM": 625,
+    "HIGH": 144
+  },
+  "by_primary_family": {
+    "NONE": 181,
+    "T01": 25,
+    "T15": 9,
+    "T04": 47,
+    "T10": 25,
+    "T14": 2,
+    "T02": 8,
+    "T03": 39,
+    "T11": 20,
+    "T09": 10,
+    "T07": 12,
+    "T05": 25,
+    "T06": 13,
+    "T08": 16,
+    "T12": 8,
+    "T13": 10
+  },
+  "by_false_positive": {
+    "NO_AI_SIGNAL": 105,
+    "OFFENSIVE_ONLY": 12,
+    "GENERIC_AI": 56,
+    "NONE": 269,
+    "SECURITY_OF_AI": 8
+  },
+  "github_artifact_type": {
+    "tool_framework": 126,
+    "offensive_tool": 67,
+    "paper_code": 45,
+    "production_platform": 212
+  },
+  "github_orientation": {
+    "UNKNOWN": 169,
+    "OFFENSIVE": 12,
+    "DEFENSIVE": 207,
+    "DUAL_USE_DEFENSE_PRIMARY": 62
+  },
+  "vdp_group": {
+    "W01": 76,
+    "W02": 110,
+    "W03": 72,
+    "W04": 71,
+    "W05": 29,
+    "W06": 71,
+    "W07": 71
+  },
+  "snapshot_note": "Frozen before screening vocabulary v1.2 changes for direct regression comparison."
+}
