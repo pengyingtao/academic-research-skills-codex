@@ -13,26 +13,59 @@ def hits(text: str, terms: list[str]) -> list[str]:
     return [x for x in terms if x.lower() in t]
 
 
+def reject(row: dict[str, Any], fp_type: str, reason: str, *, confidence: str = "REJECT") -> dict[str, Any]:
+    row.update({
+        "in_scope": False,
+        "confidence": confidence,
+        "false_positive_type": fp_type,
+        "screening_reason": reason,
+        "primary_technology_id": None,
+        "secondary_technology_ids": [],
+        "needs_review": confidence != "REJECT",
+    })
+    return row
+
+
 def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
-    text = f"{row.get('title_or_name','')}\n{row.get('text_evidence','')}\n{' '.join(row.get('topics') or [])}".lower()
+    title = row.get("title_or_name", "") or ""
+    evidence = row.get("text_evidence", "") or ""
+    text = f"{title}\n{evidence}\n{' '.join(row.get('topics') or [])}".lower()
     ai_hits = hits(text, q["ai_terms"])
     offensive = hits(text, q["negative_context"]["offensive_only"])
     security_ai = hits(text, q["negative_context"]["security_of_ai"])
 
+    # GitHub-specific hygiene is applied before family scoring. These records may
+    # be useful for discovery, training or ecosystem context but should not be
+    # counted as engineering-supply evidence in the core O layer.
+    if row.get("source_type") == "open_source":
+        artifact = row.get("artifact_type")
+        role = row.get("analysis_role")
+        if role == "DISCOVERY_ONLY" or artifact == "awesome_list_catalog":
+            return reject(row, "AGGREGATOR_NOT_TOOL", "discovery/catalog repository is not core engineering-supply evidence")
+
+        catalog_hits = hits(text, q["negative_context"].get("catalog_only", []))
+        if catalog_hits:
+            return reject(row, "AGGREGATOR_NOT_TOOL", f"catalog/resource-list indicators: {catalog_hits[:3]}")
+
+        native = (row.get("source_native_id") or "").lower()
+        parts = native.split("/", 1)
+        profile_hits = hits(text, q["negative_context"].get("personal_profile", []))
+        is_profile_repo = len(parts) == 2 and parts[0] == parts[1]
+        if is_profile_repo and profile_hits:
+            return reject(row, "PERSONAL_PROFILE", f"profile repository indicators: {profile_hits[:3]}")
+
+        education_hits = hits(text, q["negative_context"].get("education_only", []))
+        operational_terms = [
+            "malware detection", "intrusion detection", "phishing detection", "threat hunting",
+            "incident response", "vulnerability detection", "vulnerability repair", "secure code",
+            "digital forensics", "security orchestration", "threat intelligence", "soc agent",
+        ]
+        if education_hits and not hits(text, operational_terms):
+            return reject(row, "EDUCATIONAL_ONLY", f"education/training artifact without a primary defensive capability: {education_hits[:3]}")
+
     # Supply-side records must satisfy the protocol's AI-anchor requirement.
-    # GitHub retrieval is intentionally high-recall, so this check must occur
-    # again at semantic screening time rather than trusting the search query.
     if not ai_hits:
-        row.update({
-            "in_scope": False,
-            "confidence": "REJECT",
-            "false_positive_type": "NO_AI_SIGNAL",
-            "screening_reason": "cybersecurity capability found but no AI-method anchor",
-            "primary_technology_id": None,
-            "secondary_technology_ids": [],
-            "needs_review": False,
-        })
-        return row
+        return reject(row, "NO_AI_SIGNAL", "cybersecurity capability found but no AI-method anchor")
 
     family_scores: list[tuple[str, int, list[str]]] = []
     for family, cfg in q["families"].items():
@@ -45,41 +78,19 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
     family_scores.sort(key=lambda x: x[1], reverse=True)
 
     if security_ai:
-        row.update({
-            "in_scope": False,
-            "confidence": "REJECT",
-            "false_positive_type": "SECURITY_OF_AI",
-            "screening_reason": f"security-of-AI terms: {security_ai[:3]}",
-            "primary_technology_id": None,
-            "secondary_technology_ids": [],
-            "needs_review": False,
-        })
-        return row
+        return reject(row, "SECURITY_OF_AI", f"security-of-AI terms: {security_ai[:3]}")
 
     if offensive and not any(x in text for x in ["remediation", "defensive", "blue team", "soc", "patch", "secure code"]):
-        row.update({
-            "in_scope": False,
-            "confidence": "REJECT",
-            "false_positive_type": "OFFENSIVE_ONLY",
-            "use_orientation": "OFFENSIVE",
-            "screening_reason": f"offensive-primary terms: {offensive[:3]}",
-            "primary_technology_id": None,
-            "secondary_technology_ids": [],
-            "needs_review": False,
-        })
-        return row
+        row["use_orientation"] = "OFFENSIVE"
+        return reject(row, "OFFENSIVE_ONLY", f"offensive-primary terms: {offensive[:3]}")
 
     if not family_scores:
-        row.update({
-            "in_scope": False,
-            "confidence": "LOW",
-            "false_positive_type": "GENERIC_AI",
-            "screening_reason": f"AI signal {ai_hits[:3]} present but no AI-for-cybersecurity family passed term/context rules",
-            "primary_technology_id": None,
-            "secondary_technology_ids": [],
-            "needs_review": True,
-        })
-        return row
+        return reject(
+            row,
+            "GENERIC_AI",
+            f"AI signal {ai_hits[:3]} present but no AI-for-cybersecurity family passed term/context rules",
+            confidence="LOW",
+        )
 
     best = family_scores[0]
     secondaries = [x[0] for x in family_scores[1:3] if x[1] >= best[1] - 1]
@@ -94,6 +105,7 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         "screening_reason": f"AI={ai_hits[:3]}; family={best[2][:5]}",
         "false_positive_type": None,
         "needs_review": bool(secondaries or offensive),
+        "keyword_version": "1.2",
     })
     return row
 
@@ -109,6 +121,7 @@ def main() -> None:
             if not line.strip():
                 continue
             row = json.loads(line)
+            row["keyword_version"] = "1.2"
             if row.get("source_type") == "vulnerability":
                 # V is demand pressure only; never assign T01-T15 ground truth.
                 row["in_scope"] = True
