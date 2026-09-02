@@ -2,15 +2,23 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from common import OUT_DIR, load_queries, write_jsonl
 
+VERSION = "1.3.1"
+
 
 def hits(text: str, terms: list[str]) -> list[str]:
     t = text.lower()
     return [x for x in terms if x.lower() in t]
+
+
+def has_soc_context(text: str) -> bool:
+    t = text.lower()
+    return bool(re.search(r"\bsoc\b", t)) or "security operations center" in t or "security operations centre" in t
 
 
 def reject(row: dict[str, Any], fp_type: str, reason: str, *, confidence: str = "REJECT") -> dict[str, Any]:
@@ -22,7 +30,7 @@ def reject(row: dict[str, Any], fp_type: str, reason: str, *, confidence: str = 
         "primary_technology_id": None,
         "secondary_technology_ids": [],
         "needs_review": confidence != "REJECT",
-        "keyword_version": "1.3",
+        "keyword_version": VERSION,
     })
     return row
 
@@ -32,9 +40,6 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
     evidence = row.get("text_evidence", "") or ""
     topics = " ".join(row.get("topics") or [])
     text = f"{title}\n{evidence}\n{topics}".lower()
-    # For GitHub, the central project identity is approximated by title + the
-    # first 2500 chars of description/README. AI mentioned only deep in a README
-    # is insufficient to classify a conventional security tool as AI-enabled.
     central_text = f"{title}\n{evidence[:2500]}\n{topics}".lower()
     ai_hits = hits(text, q["ai_terms"])
     central_ai_hits = hits(central_text, q["ai_terms"])
@@ -78,12 +83,20 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         required = cfg.get("required_context") or []
         required_hits = hits(text, required) if required else ["NO_REQUIRED_CONTEXT"]
         score = len(term_hits) * 2 + min(2, len(required_hits))
-        # Agentic/autonomous SOC is a system-level capability. Prevent narrow
-        # sub-capabilities such as DDoS detection from dominating its primary label.
-        if family == "T09" and "soc" in central_text and any(x in central_text for x in ["agent", "autonomous", "copilot", "multi-agent"]):
+
+        # System-level SOC-agent priority is applied only to explicit SOC context,
+        # never to arbitrary substrings such as "associated". It also requires
+        # agentic/autonomous language in the central project description.
+        explicit_soc_agent = (
+            family == "T09"
+            and has_soc_context(central_text)
+            and any(x in central_text for x in ["agent", "autonomous", "copilot", "multi-agent", "multi agent"])
+        )
+        if explicit_soc_agent:
             score += 4
             term_hits = term_hits + ["SOC_AGENT_PRIORITY"]
             required_hits = required_hits or ["SOC"]
+
         if term_hits and required_hits:
             family_scores.append((family, score, term_hits + required_hits[:2]))
     family_scores.sort(key=lambda x: x[1], reverse=True)
@@ -91,7 +104,8 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
     if security_ai:
         return reject(row, "SECURITY_OF_AI", f"security-of-AI terms: {security_ai[:3]}")
 
-    if offensive and not any(x in text for x in ["remediation", "defensive", "blue team", "soc", "patch", "secure code"]):
+    defensive_context = any(x in text for x in ["remediation", "defensive", "blue team", "patch", "secure code"]) or has_soc_context(text)
+    if offensive and not defensive_context:
         row["use_orientation"] = "OFFENSIVE"
         return reject(row, "OFFENSIVE_ONLY", f"offensive-primary terms: {offensive[:3]}")
 
@@ -117,7 +131,7 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
         "screening_reason": f"AI={active_ai_hits[:3]}; family={best[2][:5]}",
         "false_positive_type": None,
         "needs_review": bool(secondaries or offensive),
-        "keyword_version": "1.3",
+        "keyword_version": VERSION,
     })
     return row
 
@@ -133,7 +147,7 @@ def main() -> None:
             if not line.strip():
                 continue
             row = json.loads(line)
-            row["keyword_version"] = "1.3"
+            row["keyword_version"] = VERSION
             if row.get("source_type") == "vulnerability":
                 row["in_scope"] = True
                 row["confidence"] = "MEDIUM"
