@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/wp2-build-blind-review-package.yml'
+      - 'My_work/03_data/pilot/build_blind_review_package.py'
 
 permissions:
   contents: write
@@ -34,7 +35,7 @@ jobs:
                   My_work/03_data/pilot/output/human_review_prediction_map_300.jsonl \
                   My_work/03_data/pilot/output/human_review_manifest.json
           if git diff --cached --quiet; then echo 'No package changes'; else
-            git commit -m 'WP2: build blinded 300-record gold review package'
+            git commit -m 'WP2: rebuild stable v1.3.2 blinded gold review package'
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
