@@ -1,0 +1,97 @@
+{
+  "status": "DIAGNOSTIC_ONLY_NOT_GOLD",
+  "screening_version": "1.3.2",
+  "centrality_false_negative_sample_n": 60,
+  "in_scope_false_positive_sample_n": 60,
+  "centrality_missed_ai_method_variant_flags": {
+    "ai_assisted": 3,
+    "agent_language": 2,
+    "hyphenated_ml": 2,
+    "tree_ensemble": 1,
+    "cnn_lstm": 1
+  },
+  "centrality_examples": {
+    "ai_assisted": [
+      "osmankaankars/osmankaankars",
+      "rohithrms03/Creation-of-Security-Operation-Dashboard-for-Threat-Detection-with-Risk-Mitigation-Analytics-Group2",
+      "faris7assan/-Slow-Low-IoT-DDoS-Evasion-Detection-"
+    ],
+    "agent_language": [
+      "rohithrms03/Creation-of-Security-Operation-Dashboard-for-Threat-Detection-with-Risk-Mitigation-Analytics-Group2",
+      "oyesanyf/OshoosiClaw"
+    ],
+    "hyphenated_ml": [
+      "mwakidenis/Network-Packet-Sniffer-Traffic-Analyse-GUI",
+      "faris7assan/-Slow-Low-IoT-DDoS-Evasion-Detection-"
+    ],
+    "tree_ensemble": [
+      "faris7assan/-Slow-Low-IoT-DDoS-Evasion-Detection-"
+    ],
+    "cnn_lstm": [
+      "kmbvip/phishing-detection-rnn-cnn"
+    ]
+  },
+  "in_scope_non_tool_or_container_flags": {
+    "reference_or_paper_feed": 5,
+    "blog_or_reference_content": 6,
+    "catalog_or_hub": 7,
+    "third_party_profile": 3,
+    "owner_repo_profile": 5,
+    "profile_or_portfolio": 3,
+    "training_or_learning": 3
+  },
+  "in_scope_examples": {
+    "reference_or_paper_feed": [
+      "XuzhaoLi/ro-arxiv-daily",
+      "LENS-AI4S/awesome-geofm-papers",
+      "Marsman1996/Security-AI-Papers",
+      "zeleny-ondrej/STNN-Weekly-Arxiv",
+      "wcventure/FuzzingPaper"
+    ],
+    "blog_or_reference_content": [
+      "23CSBS041/Patch-vulnerability-checker",
+      "divyesh-vaishnav-im/my-blogs",
+      "oogyy138-source/k7-total-security-for-evaluation-only",
+      "het2025/CySafeClick",
+      "acedmicabhishek/MasteringALL",
+      "tahaben401/ai-cybersecurity-copilot"
+    ],
+    "catalog_or_hub": [
+      "x3m-ai/Camelot",
+      "pedroleitao-neo4j/pedroleitao-neo4j",
+      "ATTAULLAH352/AI-Cybersecurity-Tools",
+      "satorici/playbooks",
+      "REXDEVCYBERCYBER-SECURITY/SecurityCMS",
+      "rod-trent/JunkDrawer",
+      "sivaki/open-source-projects"
+    ],
+    "third_party_profile": [
+      "api-evangelist/palo-alto-networks",
+      "api-evangelist/a10-networks",
+      "api-evangelist/coalition-inc"
+    ],
+    "owner_repo_profile": [
+      "KruthikReddy88/KruthikReddy88",
+      "pedroleitao-neo4j/pedroleitao-neo4j",
+      "MutentMan/MutentMan",
+      "raylabres/raylabres",
+      "cybrdude/cybrdude"
+    ],
+    "profile_or_portfolio": [
+      "ilsamaritano/ilsamaritano.github.io",
+      "abhiveeramallu/ThreatlensAI",
+      "cybrdude/cybrdude"
+    ],
+    "training_or_learning": [
+      "navyne02/ML_Advanced",
+      "PatrickWiloak/cloud-data-ai-security-zero-to-hero",
+      "xavianab/SOC-Analyst-AI"
+    ]
+  },
+  "interpretation": [
+    "Counts are overlapping diagnostic flags, not error rates and not gold labels.",
+    "A false-negative audit record may contain an AI method token but still be out of scope for other reasons.",
+    "A false-positive audit record may look like a profile/feed/container but still require independent review before exclusion.",
+    "Use this report to prioritize targeted human review and narrow rule changes only."
+  ]
+}
