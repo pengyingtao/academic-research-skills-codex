@@ -1,0 +1,82 @@
+name: WP2 OpenAlex Science Rescreen V1
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-openalex-science-rescreen-v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rescreen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Source-aware Science screening
+        working-directory: My_work/03_data/pilot
+        run: python screen_science_candidates.py output/openalex_boolean_candidates.jsonl
+      - name: Compare global v1.3.2 and Science profile V1
+        working-directory: My_work/03_data/pilot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import collections, json, pathlib
+          def load(p):
+              return [json.loads(x) for x in pathlib.Path(p).read_text(encoding='utf-8').splitlines() if x.strip()]
+          old=load('output/openalex_boolean_screened.jsonl')
+          new=load('output/openalex_science_screened_v1.jsonl')
+          o={r['source_native_id']:r for r in old}; n={r['source_native_id']:r for r in new}
+          changes=[]; trans=collections.Counter(); oldfam=collections.Counter(); newfam=collections.Counter()
+          for rid in sorted(set(o)&set(n)):
+              a=o[rid]; b=n[rid]
+              oldfam[str(a.get('primary_technology_id') or 'NONE')]+=1
+              newfam[str(b.get('primary_technology_id') or 'NONE')]+=1
+              key=(bool(a.get('in_scope')),bool(b.get('in_scope'))); trans[f'{key[0]}->{key[1]}']+=1
+              fields=[k for k in ['in_scope','primary_technology_id','secondary_technology_ids','confidence','false_positive_type'] if a.get(k)!=b.get(k)]
+              if fields:
+                  changes.append({
+                    'source_native_id':rid,'title_or_name':b.get('title_or_name'),
+                    'changed_fields':fields,'global_in_scope':a.get('in_scope'),'science_in_scope':b.get('in_scope'),
+                    'global_primary':a.get('primary_technology_id'),'science_primary':b.get('primary_technology_id'),
+                    'global_fp':a.get('false_positive_type'),'science_fp':b.get('false_positive_type'),
+                    'abstract_present':b.get('abstract_present')
+                  })
+          payload={
+            'n_common':len(set(o)&set(n)),
+            'n_changed':len(changes),
+            'scope_transitions':dict(trans),
+            'global_primary_family':dict(oldfam),
+            'science_profile_primary_family':dict(newfam),
+            'profile':'SCIENCE_TITLE_ABSTRACT_V1',
+            'change_reason':'OpenAlex topics removed from semantic family evidence; academic punctuation normalized.',
+            'guardrail':'Regression of evidence channels only; human gold still required before freeze.'
+          }
+          pathlib.Path('analysis/openalex_science_profile_v1_regression.json').write_text(json.dumps(payload,indent=2),encoding='utf-8')
+          with pathlib.Path('analysis/openalex_science_profile_v1_changed.jsonl').open('w',encoding='utf-8') as f:
+              for r in changes:f.write(json.dumps(r,ensure_ascii=False)+'\n')
+          print(json.dumps(payload,indent=2))
+          PY
+      - name: Commit Science-profile outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/openalex_science_screened_v1.jsonl \
+                  My_work/03_data/pilot/analysis/openalex_science_profile_v1_regression.json \
+                  My_work/03_data/pilot/analysis/openalex_science_profile_v1_changed.jsonl
+          if git diff --cached --quiet; then echo 'No Science-profile changes'; else
+            git commit -m 'WP2: rescreen OpenAlex with source-aware Science evidence profile'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
