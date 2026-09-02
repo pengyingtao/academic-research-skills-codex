@@ -66,6 +66,12 @@ class PilotLogicTests(unittest.TestCase):
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "AGGREGATOR_NOT_TOOL")
 
+    def test_arxiv_daily_reference_feed_is_rejected(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/arxiv-daily","title_or_name":"LLM arxiv daily","text_evidence":"Automatically update arxiv papers about LLM and cyber deception using GitHub Actions. This is a daily arxiv paper feed.","topics":[],"artifact_type":"paper_code","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertFalse(out["in_scope"])
+        self.assertEqual(out["false_positive_type"], "AGGREGATOR_NOT_TOOL")
+
     def test_education_only_ai_cyber_lab_is_rejected(self) -> None:
         row = {"source_type":"open_source","source_native_id":"org/cyber-gym","title_or_name":"Cybersecurity Gym","text_evidence":"AI-powered certification training, exam questions, study material and learning lab for cybersecurity students","topics":[],"artifact_type":"tool_framework","analysis_role":"ENGINEERING_SUPPLY"}
         out = screen_supply(row, self.q)
@@ -95,6 +101,19 @@ class PilotLogicTests(unittest.TestCase):
         self.assertTrue(out["in_scope"])
         self.assertNotEqual(out["primary_technology_id"], "T09")
         self.assertEqual(out["primary_technology_id"], "T04")
+
+    def test_vulnerability_risk_scoring_maps_to_t12_not_t02(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/risk-ai","title_or_name":"AI Vulnerability Intelligence","text_evidence":"AI-powered vulnerability intelligence platform uses an LLM for vulnerability risk scoring, vulnerability prioritization and remediation prioritization. It produces remediation reports but does not generate code patches.","topics":[],"artifact_type":"production_platform","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertTrue(out["in_scope"])
+        self.assertEqual(out["primary_technology_id"], "T12")
+        self.assertNotEqual(out["primary_technology_id"], "T02")
+
+    def test_code_level_patch_generation_remains_t02(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/patch-ai","title_or_name":"AI Security Patch Generator","text_evidence":"Large language model for automated patch generation and vulnerability repair. The system generates a code patch for vulnerable source code and validates the generated patch.","topics":[],"artifact_type":"tool_framework","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertTrue(out["in_scope"])
+        self.assertEqual(out["primary_technology_id"], "T02")
 
     def test_security_of_ai_is_excluded(self) -> None:
         row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"LLM jailbreak detection","text_evidence":"large language model jailbreak detection for prompt injection defense","topics":[]}
