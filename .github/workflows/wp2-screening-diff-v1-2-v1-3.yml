@@ -1,0 +1,111 @@
+name: WP2 Screening Diff V1.2 to V1.3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-screening-diff-v1-2-v1-3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Materialize v1.2 record-level baseline
+        run: |
+          git show 7ee48cae0fda9e72ed65bd81c083de8e8ce32f62^:My_work/03_data/pilot/output/pilot_screened.jsonl > /tmp/pilot_screened_v1_2.jsonl || \
+          git show 712d13a862a237e7bafa7fd9547b9c3a36688e4c^:My_work/03_data/pilot/output/pilot_screened.jsonl > /tmp/pilot_screened_v1_2.jsonl
+      - name: Build v1.2 to v1.3 changed-record set
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import csv, json
+          from collections import Counter
+          from pathlib import Path
+
+          def load(path):
+              out = {}
+              for line in Path(path).read_text(encoding='utf-8').splitlines():
+                  if line.strip():
+                      r = json.loads(line)
+                      out[(r.get('source_type'), r.get('source_native_id'))] = r
+              return out
+
+          old = load('/tmp/pilot_screened_v1_2.jsonl')
+          new = load('output/pilot_screened.jsonl')
+          fields = ['in_scope','primary_technology_id','secondary_technology_ids','use_orientation','false_positive_type','confidence']
+          changed = []
+          transitions = Counter()
+          change_types = Counter()
+          for key in sorted(set(old) & set(new)):
+              a, b = old[key], new[key]
+              diffs = [f for f in fields if a.get(f) != b.get(f)]
+              if not diffs:
+                  continue
+              for f in diffs:
+                  change_types[f] += 1
+              transitions[f"{a.get('in_scope')}->{b.get('in_scope')}"] += 1
+              changed.append({
+                  'source_type': b.get('source_type'),
+                  'source_native_id': b.get('source_native_id'),
+                  'event_date': b.get('event_date'),
+                  'title_or_name': b.get('title_or_name'),
+                  'evidence_excerpt': (b.get('text_evidence') or '').replace('\n',' ')[:1600],
+                  'candidate_family': b.get('candidate_family'),
+                  'changed_fields': diffs,
+                  'v1_2_in_scope': a.get('in_scope'),
+                  'v1_3_in_scope': b.get('in_scope'),
+                  'v1_2_primary': a.get('primary_technology_id'),
+                  'v1_3_primary': b.get('primary_technology_id'),
+                  'v1_2_false_positive': a.get('false_positive_type'),
+                  'v1_3_false_positive': b.get('false_positive_type'),
+                  'v1_2_confidence': a.get('confidence'),
+                  'v1_3_confidence': b.get('confidence'),
+                  'review_priority': 'HIGH' if a.get('in_scope') and not b.get('in_scope') else ('HIGH' if a.get('primary_technology_id') != b.get('primary_technology_id') else 'MEDIUM'),
+                  'ai_prereview_status': None,
+                  'ai_review_note': None,
+              })
+
+          changed.sort(key=lambda r: (0 if r['review_priority']=='HIGH' else 1, r['source_type'], r['source_native_id']))
+          outdir = Path('analysis')
+          with (outdir/'screening_changed_records_v1_2_to_v1_3.jsonl').open('w', encoding='utf-8') as f:
+              for r in changed:
+                  f.write(json.dumps(r, ensure_ascii=False)+'\n')
+          if changed:
+              with (outdir/'screening_changed_records_v1_2_to_v1_3.csv').open('w', encoding='utf-8-sig', newline='') as f:
+                  w = csv.DictWriter(f, fieldnames=list(changed[0]))
+                  w.writeheader(); w.writerows(changed)
+          summary = {
+              'n_common_records': len(set(old) & set(new)),
+              'n_changed_records': len(changed),
+              'scope_transitions': dict(transitions),
+              'change_field_counts': dict(change_types),
+              'high_priority_review_n': sum(r['review_priority']=='HIGH' for r in changed),
+              'review_status': 'PENDING_TARGETED_REVIEW',
+              'note': 'Priority focuses on v1.2 TRUE -> v1.3 FALSE and primary-family changes to detect over-tightening.'
+          }
+          (outdir/'screening_changed_records_v1_2_to_v1_3_summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
+          print(json.dumps(summary, indent=2))
+          PY
+      - name: Commit changed-record review set
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/analysis/screening_changed_records_v1_2_to_v1_3*
+          if git diff --cached --quiet; then
+            echo 'No changed-record outputs.'
+          else
+            git commit -m 'WP2: isolate v1.2 to v1.3 screening changes for review'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
