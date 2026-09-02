@@ -1,0 +1,277 @@
+name: WP2 Log Screening Iterations 2026-09-02
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-log-2026-09-02-screening.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Append execution log
+        run: |
+          cat >> 'My_work/执行记录/执行日志.md' <<'EOF'
+
+          ---
+
+          ## 2026-09-02 — WP2 Gate 2B 扩展正式 O/V Pilot 与筛查规则迭代
+
+          **WP2 状态：IN_PROGRESS**
+
+          **Gate 2B：IN_PROGRESS**
+
+          ### 正式历史 O/V Pilot 已扩展
+
+          在固定 `research cutoff = 2026-06-30` 下，正式可计入 Gate 2B 的 Open Source + Vulnerability Demand 子语料已扩展为：
+
+          - GitHub/Open Source：450
+          - Vulnerability Demand / VDP：500
+          - Total：950
+
+          VDP 500 条分层结果：
+
+          - W01：76
+          - W02：110
+          - W03：72
+          - W04：71
+          - W05：29
+          - W06：71
+          - W07：71
+
+          W05 仍相对不足，但相比早期 140 条子批次的结构失衡已有明显改善。
+
+          ### Science / Patent 当前外部阻塞
+
+          OpenAlex Science Pilot：`BLOCKED_CREDENTIAL`。
+
+          - collector 已准备；
+          - GitHub repository secret 中尚无 `OPENALEX_API_KEY`；
+          - full snapshot 可作为替代，但不适合普通 GitHub Actions Pilot 运行环境。
+
+          Patent Technology Pilot：`BLOCKED_AUTHENTICATED_ODP_ACCESS`。
+
+          - PatentsView/USPTO bulk normalizer 已准备；
+          - legacy public S3 测试返回 HTTP 403；
+          - 当前 USPTO Open Data Portal bulk 获取需要认证访问；
+          - 不允许用未经标明的第三方镜像静默替代正式 WP3 数据。
+
+          阻塞与恢复条件已记录于：
+
+          `My_work/03_data/pilot/gate2b_blockers_and_recovery.md`
+
+          ### Screening V1.1 基线冻结
+
+          在相同 950 条 O/V corpus 上冻结 V1.1 统计，用作后续纯规则回归比较：
+
+          - auto in-scope：769
+          - auto out-of-scope：181
+          - HIGH：144
+          - NO_AI_SIGNAL：105
+
+          注意：500 条 VDP 需求记录在 screening 中始终视为 demand-layer in-scope，因此以上绝不能解释为 supply precision。
+
+          ### Screening / Keyword V1.2
+
+          V1.2 修订：
+
+          1. 扩展 AI anchor：XAI、Explainable AI、Agentic AI、AI-powered、AI-driven、AI-based 等；
+          2. 新增 personal profile / catalog / education-only 排除；
+          3. 加强 GitHub artifact hygiene；
+          4. 保持 Taxonomy T01–T15 本体不变，仅升级 screening vocabulary。
+
+          在完全相同的 950 条 corpus 上，V1.1 → V1.2：
+
+          - in-scope：+19
+          - out-of-scope：-19
+          - NO_AI_SIGNAL：105 → 55
+          - PERSONAL_PROFILE：0 → 29
+          - AGGREGATOR_NOT_TOOL：0 → 11
+          - HIGH：+21
+
+          结论：V1.2 修复了部分 AI 术语漏识别，同时开始清理 profile / aggregator 噪声。但 targeted review 发现，若 AI 词只在很深的 README 位置偶然出现，传统安全工具仍可能被误判为 AI-for-Cybersecurity。
+
+          ### V1.1 → V1.2 逐条变化审查
+
+          已建立 record-level diff：
+
+          - common records：950
+          - changed records：83
+          - in_scope changed：65
+          - primary-family changed：65
+          - false-positive-type changed：83
+
+          输出：
+
+          - `analysis/screening_changed_records_v1_1_to_v1_2.jsonl`
+          - `analysis/screening_changed_records_v1_1_to_v1_2.csv`
+          - `analysis/screening_changed_records_summary.json`
+
+          ### AI Pre-review 与 Human Gold 严格分离
+
+          新建：
+
+          `My_work/03_data/pilot/ai_prereview_protocol.md`
+
+          规则：
+
+          - AI 只能生成 `AI_PREREVIEW_*` 建议；
+          - AI 不得写入 `gold_status=AGREED/ADJUDICATED`；
+          - `evaluate_gold.py` 继续只统计真正完成独立/人工终审的 gold records；
+          - 未完成 human gold 前的任何一致率/性能均必须标 `PROVISIONAL`。
+
+          已完成 AI targeted pre-review：
+
+          - batch01：20 条
+          - batch02：10 条
+          - batch03：6 条
+          - 合计：36 条
+
+          主要稳定误差模式：
+
+          1. GitHub owner/repo 同名个人 profile 容易被错误当作工程实现；
+          2. vendor list / trending / starred repository / resource list 等 aggregator 不应作为 engineering supply；
+          3. 传统 DDoS、Nmap、SOAR 等工具可能在 README 深部偶然出现 AI 字样，不能因此视为 AI 技术；
+          4. 明确 Agentic/Autonomous SOC 应优先视为系统级 T09，DDoS / threat hunting / response 等作为 secondary capability。
+
+          ### Screening V1.3 — AI Centrality
+
+          基于上述预审，V1.3 新增：
+
+          - GitHub AI centrality gate：AI/ML 必须出现在 title + README/description 前部 + topics 的核心项目描述中；
+          - 扩展 profile/catalog 排除词；
+          - 增加 Agentic/Autonomous SOC 的 T09 system-level priority。
+
+          V1.2 → V1.3 回归：
+
+          - in-scope：788 → 673（-115）
+          - out-of-scope：162 → 277（+115）
+          - PERSONAL_PROFILE：29 → 113
+          - NO_AI_SIGNAL：55 → 123
+          - T09：19 → 41
+
+          逐条变化：
+
+          - changed records：201
+          - TRUE → FALSE：124
+          - high-priority review：154
+
+          判断：变化幅度过大，**V1.3 不得直接冻结**，必须进行 targeted false-negative review。
+
+          ### V1.3 SOC substring bug
+
+          高优先级样本检查发现代码问题：
+
+          原逻辑使用：
+
+          `"soc" in central_text`
+
+          这会把 `associated` 等包含字符序列 `soc` 的普通单词误判成 SOC，从而错误触发 T09 priority。
+
+          已修订为：
+
+          - `\bsoc\b` exact word boundary；
+          - 或明确 `security operations center/centre`；
+          - offensive/defensive context 也使用同一严格 SOC 判断；
+          - 新增回归测试，明确 `associated` 不得触发 SOC。
+
+          ### Screening V1.3.1
+
+          V1.3.1 为当前候选筛查版本，**NOT FROZEN**。
+
+          V1.3 → V1.3.1：
+
+          - 950 条中仅 12 条变化；
+          - 6 条保持 in-scope 但主技术族修正；
+          - 6 条 TRUE → FALSE；
+          - T09：41 → 33。
+
+          当前 V1.3.1 总体自动筛查：
+
+          - total：950
+          - auto in-scope：667
+          - auto out-of-scope：283
+          - HIGH：107
+          - MEDIUM：560
+          - LOW：26
+          - REJECT：257
+          - PERSONAL_PROFILE：113
+          - NO_AI_SIGNAL：123
+          - AGGREGATOR_NOT_TOOL：8
+
+          再次强调：这些是自动筛查输出，不是 precision/F1。
+
+          ### 当前版本判断
+
+          `screening v1.3.1 = CANDIDATE / NOT FROZEN`
+
+          详细评估：
+
+          `My_work/03_data/pilot/screening_version_assessment_v1_3_1.md`
+
+          保留理由：
+
+          - 已修复明确的 AI vocabulary 漏召回；
+          - 已识别并清理 profile / aggregator 主要噪声；
+          - AI centrality 有 targeted-review 证据支持；
+          - SOC substring bug 已修复并有 regression tests。
+
+          不冻结理由：
+
+          - V1.2 → V1.3/1.3.1 的 TRUE → FALSE 变化仍较大；
+          - 尚无 >=300 human/independent gold；
+          - Science / Patent 尚未进入跨源验证；
+          - 需要专门检查 centrality gate 的 false negatives。
+
+          ### 当前 Gate 2B 状态
+
+          已通过/基本就绪：
+
+          - GitHub formal historical sampling：450；
+          - VDP formal historical sampling：500；
+          - point-in-time KEV/EPSS；
+          - compact 300-record review queue；
+          - screening regression infrastructure；
+          - AI pre-review protocol；
+          - screening V1.3.1 candidate + regression tests。
+
+          尚未通过：
+
+          - OpenAlex Science ≈1000；
+          - Patent Technology ≈500；
+          - >=300 human/independent gold reviews；
+          - supply Precision >=0.90；
+          - primary-family macro-F1 >=0.80；
+          - high-frequency family F1 >=0.85；
+          - V1.3.1 centrality false-negative audit；
+          - four-source cross-source behavior validation。
+
+          因此：**WP2 = IN_PROGRESS，Gate 2B = IN_PROGRESS，禁止提前进入 WP3。**
+
+          ### 下一执行顺序
+
+          在 OpenAlex/Patent access 未解除前：
+
+          1. 继续审查 V1.2 → V1.3.1 的高优先级变化记录；
+          2. 建立 centrality false-negative 专项样本；
+          3. 建立 V1.3.1 in-scope false-positive 专项样本；
+          4. 将 300 条 compact queue 准备为 human adjudication package；
+          5. 只有 reviewed evidence 支持时才继续修改规则，并为每个修订新增 regression test。
+          EOF
+      - name: Commit execution log
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 'My_work/执行记录/执行日志.md'
+          git commit -m 'WP2: log screening iterations and Gate 2B status'
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
