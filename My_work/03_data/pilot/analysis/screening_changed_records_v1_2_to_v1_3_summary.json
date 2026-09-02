@@ -1,0 +1,21 @@
+{
+  "n_common_records": 950,
+  "n_changed_records": 201,
+  "scope_transitions": {
+    "False->False": 46,
+    "True->False": 124,
+    "True->True": 22,
+    "False->True": 9
+  },
+  "change_field_counts": {
+    "false_positive_type": 179,
+    "in_scope": 133,
+    "primary_technology_id": 154,
+    "secondary_technology_ids": 65,
+    "use_orientation": 139,
+    "confidence": 164
+  },
+  "high_priority_review_n": 154,
+  "review_status": "PENDING_TARGETED_REVIEW",
+  "note": "Priority focuses on v1.2 TRUE -> v1.3 FALSE and primary-family changes to detect over-tightening."
+}
