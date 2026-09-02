@@ -20,6 +20,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
       - name: Summarize 300-record review package
         working-directory: My_work/03_data/pilot
         run: python summarize_review_package.py
