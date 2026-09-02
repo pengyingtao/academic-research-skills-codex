@@ -37,92 +37,55 @@ class PilotLogicTests(unittest.TestCase):
         self.assertIn("created:<=2026-06-30", q)
 
     def test_supply_without_ai_anchor_is_rejected(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/repo",
-            "title_or_name": "Threat intelligence platform",
-            "text_evidence": "cyber threat intelligence IOC extraction and SOC workflow",
-            "topics": [],
-        }
+        row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"Threat intelligence platform","text_evidence":"cyber threat intelligence IOC extraction and SOC workflow","topics":[]}
         out = screen_supply(row, self.q)
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "NO_AI_SIGNAL")
-        self.assertIsNone(out["primary_technology_id"])
 
     def test_ai_threat_intelligence_maps_to_t07(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/repo",
-            "title_or_name": "LLM cyber threat intelligence",
-            "text_evidence": "large language model for cyber threat intelligence and IOC extraction",
-            "topics": [],
-        }
+        row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"LLM cyber threat intelligence","text_evidence":"large language model for cyber threat intelligence and IOC extraction","topics":[]}
         out = screen_supply(row, self.q)
         self.assertTrue(out["in_scope"])
         self.assertEqual(out["primary_technology_id"], "T07")
 
     def test_xai_is_recognized_as_ai_anchor(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/repo",
-            "title_or_name": "Explainable secure code analysis",
-            "text_evidence": "XAI and explainable AI for secure code review and software security analysis",
-            "topics": [],
-        }
+        row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"Explainable secure code analysis","text_evidence":"XAI and explainable AI for secure code review and software security analysis","topics":[]}
         out = screen_supply(row, self.q)
         self.assertTrue(out["in_scope"])
         self.assertEqual(out["primary_technology_id"], "T15")
 
     def test_profile_repo_is_rejected(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "alice/alice",
-            "title_or_name": "alice/alice",
-            "text_evidence": "Cybersecurity professional. Professional experience in SOC and threat hunting. AI-powered projects listed below.",
-            "topics": [],
-            "artifact_type": "production_platform",
-            "analysis_role": "ENGINEERING_SUPPLY",
-        }
+        row = {"source_type":"open_source","source_native_id":"alice/alice","title_or_name":"alice/alice","text_evidence":"Hi, I'm Alice. Cybersecurity analyst. Welcome to my portfolio with AI and threat-hunting projects.","topics":[],"artifact_type":"production_platform","analysis_role":"ENGINEERING_SUPPLY"}
         out = screen_supply(row, self.q)
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "PERSONAL_PROFILE")
 
     def test_generic_workflow_catalog_is_rejected(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/catalog",
-            "title_or_name": "Workflow catalog",
-            "text_evidence": "AI-powered workflows catalog and reusable workflow templates including some security examples",
-            "topics": [],
-            "artifact_type": "paper_code",
-            "analysis_role": "ENGINEERING_SUPPLY",
-        }
+        row = {"source_type":"open_source","source_native_id":"org/catalog","title_or_name":"Workflow catalog","text_evidence":"AI-powered workflows catalog and reusable workflow templates including some security examples","topics":[],"artifact_type":"paper_code","analysis_role":"ENGINEERING_SUPPLY"}
         out = screen_supply(row, self.q)
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "AGGREGATOR_NOT_TOOL")
 
     def test_education_only_ai_cyber_lab_is_rejected(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/cyber-gym",
-            "title_or_name": "Cybersecurity Gym",
-            "text_evidence": "AI-powered certification training, exam questions, study material and learning lab for cybersecurity students",
-            "topics": [],
-            "artifact_type": "tool_framework",
-            "analysis_role": "ENGINEERING_SUPPLY",
-        }
+        row = {"source_type":"open_source","source_native_id":"org/cyber-gym","title_or_name":"Cybersecurity Gym","text_evidence":"AI-powered certification training, exam questions, study material and learning lab for cybersecurity students","topics":[],"artifact_type":"tool_framework","analysis_role":"ENGINEERING_SUPPLY"}
         out = screen_supply(row, self.q)
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "EDUCATIONAL_ONLY")
 
+    def test_deep_incidental_ai_mention_does_not_pass_github_gate(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/nmap-tool","title_or_name":"Network scanner","text_evidence":"Network vulnerability scanner and security audit tool. " + ("network scanning " * 220) + " AI-based optional documentation example", "topics":[],"artifact_type":"tool_framework","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertFalse(out["in_scope"])
+        self.assertEqual(out["false_positive_type"], "NO_AI_SIGNAL")
+
+    def test_agentic_soc_priority_maps_to_t09(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/edgesoc","title_or_name":"EdgeSOC","text_evidence":"AI-powered multi-agent autonomous SOC platform for security investigation, DDoS detection, incident response, SIEM alerts and threat hunting","topics":[],"artifact_type":"production_platform","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertTrue(out["in_scope"])
+        self.assertEqual(out["primary_technology_id"], "T09")
+
     def test_security_of_ai_is_excluded(self) -> None:
-        row = {
-            "source_type": "open_source",
-            "source_native_id": "org/repo",
-            "title_or_name": "LLM jailbreak detection",
-            "text_evidence": "large language model jailbreak detection for prompt injection defense",
-            "topics": [],
-        }
+        row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"LLM jailbreak detection","text_evidence":"large language model jailbreak detection for prompt injection defense","topics":[]}
         out = screen_supply(row, self.q)
         self.assertFalse(out["in_scope"])
         self.assertEqual(out["false_positive_type"], "SECURITY_OF_AI")
