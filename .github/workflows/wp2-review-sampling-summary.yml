@@ -1,0 +1,36 @@
+name: WP2 Human Review Sampling Summary
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-review-sampling-summary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Summarize 300-record review package
+        working-directory: My_work/03_data/pilot
+        run: python summarize_review_package.py
+      - name: Commit support summary
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/human_review_sampling_summary.json
+          if git diff --cached --quiet; then echo 'No summary changes'; else
+            git commit -m 'WP2: persist human review sampling support summary'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
