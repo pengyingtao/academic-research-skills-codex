@@ -1,4 +1,4 @@
-version: "1.3.1"
+version: "1.3.2"
 updated: "2026-09-02"
 window:
   from: "2012-01-01"
@@ -60,7 +60,7 @@ families:
   T11:
     terms: ["digital forensics", "memory forensics", "disk forensics", "forensic timeline"]
   T12:
-    terms: ["attack surface management", "exposure management", "cyber risk prediction", "vulnerability prioritization"]
+    terms: ["attack surface management", "exposure management", "cyber risk prediction", "vulnerability prioritization", "vulnerability intelligence", "vulnerability risk scoring", "risk-based vulnerability prioritization", "remediation prioritization"]
   T13:
     terms: ["adaptive authentication", "identity anomaly detection", "privilege misuse", "behavioral biometrics"]
   T14:
@@ -75,6 +75,19 @@ negative_context:
   personal_profile: ["cybersecurity professional", "my portfolio", "professional experience", "resume", "curriculum vitae", "portfolio", "about me", "open to opportunities", "education & certifications", "certifications", "profile views", "hi, i'm", "welcome! i'm"]
   education_only: ["certification training", "exam questions", "learning lab", "training course", "cybersecurity gym", "study material"]
   catalog_only: ["workflows catalog", "workflow catalog", "awesome list", "curated list", "resource list", "list of vendors", "vendor list", "starred repositories", "auto-synced starred", "feed aggregator"]
+  reference_feed: ["arxiv daily", "daily arxiv", "automatically update arxiv", "automatically updated arxiv", "paper feed", "papers feed"]
+
+t02_strong_repair_evidence:
+  - automated program repair
+  - automated patch generation
+  - vulnerability repair
+  - security patch generation
+  - patch generation
+  - code repair
+  - program repair
+  - generate patch
+  - generated patch
+  - patch synthesis
 
 vulnerability_strata:
   W01: [CWE-119, CWE-120, CWE-121, CWE-122, CWE-125, CWE-787, CWE-416, CWE-457]
