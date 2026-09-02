@@ -1,0 +1,65 @@
+name: WP2 OpenAlex Boolean Pilot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-openalex-boolean-pilot.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Collect low-budget stratified OpenAlex candidates
+        working-directory: My_work/03_data/pilot
+        run: python collect_openalex_boolean.py --max-total 1000
+      - name: Screen independent Boolean Pilot
+        working-directory: My_work/03_data/pilot
+        run: python screen_candidates.py output/openalex_boolean_candidates.jsonl --output openalex_boolean_screened.jsonl
+      - name: Summarize screening
+        working-directory: My_work/03_data/pilot
+        shell: bash
+        run: |
+          python - <<'PY'
+          import collections, json, pathlib
+          p=pathlib.Path('output/openalex_boolean_screened.jsonl')
+          rows=[json.loads(x) for x in p.read_text(encoding='utf-8').splitlines() if x.strip()] if p.exists() else []
+          summary={
+            'n':len(rows),
+            'in_scope':sum(bool(r.get('in_scope')) for r in rows),
+            'out_of_scope':sum(not bool(r.get('in_scope')) for r in rows),
+            'confidence':dict(collections.Counter(str(r.get('confidence')) for r in rows)),
+            'primary_family':dict(collections.Counter(str(r.get('primary_technology_id') or 'NONE') for r in rows)),
+            'false_positive':dict(collections.Counter(str(r.get('false_positive_type') or 'NONE') for r in rows)),
+            'screening_version':'1.3.2',
+            'guardrail':'Automatic screening summary only; not precision/F1 and not gold.'
+          }
+          pathlib.Path('output/openalex_boolean_screening_summary.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')
+          print(json.dumps(summary,indent=2))
+          PY
+      - name: Commit Boolean Pilot outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/openalex_boolean_*
+          if git diff --cached --quiet; then echo 'No Boolean Pilot changes'; else
+            git commit -m 'WP2: collect low-budget OpenAlex Boolean Science Pilot'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
