@@ -1,0 +1,19 @@
+{
+  "n_common": 950,
+  "n_changed": 12,
+  "scope_transitions": {
+    "True->True": 6,
+    "True->False": 6
+  },
+  "primary_transitions": {
+    "T09->T03": 2,
+    "T09->T05": 1,
+    "T09->T04": 1,
+    "T04->None": 3,
+    "T09->T10": 1,
+    "T09->None": 2,
+    "T09->T01": 1,
+    "T15->None": 1
+  },
+  "patch": "SOC exact-token/phrase matching; removes substring bug"
+}
