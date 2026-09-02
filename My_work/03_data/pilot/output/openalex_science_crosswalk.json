@@ -1,0 +1,109 @@
+{
+  "candidate_n": 1000,
+  "screened_n": 1000,
+  "audit_n": 60,
+  "audit_design": "4 records per T01-T15 retrieval family with automatic-outcome diversity",
+  "retrieval_to_auto_primary": {
+    "T01": {
+      "T01": 44,
+      "T03": 5,
+      "NONE": 17,
+      "T04": 14,
+      "T15": 1
+    },
+    "T02": {
+      "NONE": 48,
+      "T02": 12,
+      "T10": 1,
+      "T03": 3,
+      "T04": 2
+    },
+    "T03": {
+      "NONE": 12,
+      "T04": 35,
+      "T03": 29
+    },
+    "T04": {
+      "NONE": 12,
+      "T04": 57,
+      "T05": 1
+    },
+    "T05": {
+      "T03": 16,
+      "T04": 11,
+      "T05": 29,
+      "T15": 1,
+      "NONE": 8
+    },
+    "T06": {
+      "T04": 48,
+      "NONE": 7
+    },
+    "T07": {
+      "NONE": 15,
+      "T03": 8,
+      "T04": 29,
+      "T07": 7,
+      "T05": 2
+    },
+    "T08": {
+      "T04": 35,
+      "NONE": 17,
+      "T03": 5,
+      "T05": 1,
+      "T01": 1,
+      "T14": 1,
+      "T08": 1
+    },
+    "T10": {
+      "NONE": 66,
+      "T10": 3
+    },
+    "T11": {
+      "NONE": 31,
+      "T05": 1,
+      "T03": 9,
+      "T11": 14,
+      "T04": 3
+    },
+    "T13": {
+      "T13": 12,
+      "NONE": 34,
+      "T03": 8,
+      "T04": 8,
+      "T10": 1
+    },
+    "T14": {
+      "NONE": 29,
+      "T04": 26,
+      "T03": 1,
+      "T14": 8
+    },
+    "T15": {
+      "NONE": 39,
+      "T03": 10,
+      "T15": 11,
+      "T04": 4,
+      "T01": 4
+    },
+    "T09": {
+      "NONE": 39,
+      "T04": 16,
+      "T09": 14,
+      "T01": 1,
+      "T03": 2,
+      "T02": 1
+    },
+    "T12": {
+      "T12": 4,
+      "NONE": 33,
+      "T01": 7,
+      "T04": 21,
+      "T02": 1,
+      "T03": 3,
+      "T07": 1
+    }
+  },
+  "guardrail": "Retrieval family is a sampling stratum, not ground truth. Auto primary is model output, not gold.",
+  "evidence_note": "OpenAlex full-text search may retrieve a work because of fulltext matches even when the stored abstract lacks the matched AI/family term; this can produce NO_AI_SIGNAL during abstract-based screening and must be treated as a retrieval-evidence mismatch rather than automatically as a classifier error."
+}
