@@ -1,0 +1,196 @@
+{
+  "evaluation_status": "INCOMPLETE_GOLD_DO_NOT_USE_AS_GATE_RESULT",
+  "merge_diagnostics": {
+    "review_design": "BLINDED_TO_MODEL_PREDICTION",
+    "n_blind_rows": 300,
+    "n_prediction_rows": 300,
+    "n_merged_rows": 300,
+    "screening_version": "1.3.2",
+    "review_id_match": true
+  },
+  "n_finalized_gold": 0,
+  "n_supply_gold": 0,
+  "n_vulnerability_gold": 0,
+  "supply_in_scope": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support_tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 0
+  },
+  "primary_family_macro_f1": 0.0,
+  "per_family": {
+    "T01": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T02": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T03": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T04": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T05": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T06": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T07": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T08": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T09": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T10": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T11": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T12": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T13": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T14": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    },
+    "T15": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support_tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "gold_support": 0
+    }
+  },
+  "confusion_matrix": {
+    "T01": {},
+    "T02": {},
+    "T03": {},
+    "T04": {},
+    "T05": {},
+    "T06": {},
+    "T07": {},
+    "T08": {},
+    "T09": {},
+    "T10": {},
+    "T11": {},
+    "T12": {},
+    "T13": {},
+    "T14": {},
+    "T15": {}
+  },
+  "github": {
+    "artifact_type_accuracy": 0.0,
+    "artifact_type_n": 0,
+    "orientation_accuracy": 0.0,
+    "orientation_n": 0
+  },
+  "vulnerability": {
+    "vdp_group_accuracy": 0.0,
+    "vdp_group_n": 0,
+    "direct_txx_label_violations": 0
+  },
+  "gate_thresholds": {
+    "min_finalized_gold": 300,
+    "min_supply_precision": 0.9,
+    "min_primary_family_macro_f1": 0.8
+  },
+  "guardrail": "Metrics from fewer than 300 finalized independent/human gold records are diagnostic only and must not be reported as Gate 2B performance.",
+  "gate_partial_pass": false
+}
