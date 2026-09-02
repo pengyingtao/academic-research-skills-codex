@@ -1,0 +1,385 @@
+{
+  "status": "DIAGNOSTIC_ONLY_NOT_GOLD",
+  "n": 1000,
+  "screening_version": "1.3.2",
+  "empty_abstract_n": 132,
+  "empty_abstract_rate": 0.132,
+  "ai_signal_channel": {
+    "BODY_ONLY": 737,
+    "BODY_AND_TOPICS": 176,
+    "NONE": 81,
+    "TOPICS_ONLY": 6
+  },
+  "family_signal_topic_only_counts": {
+    "T03": 301,
+    "T04": 297,
+    "T05": 33
+  },
+  "family_signal_body_only_counts": {
+    "T01": 66,
+    "T06": 44,
+    "T07": 50,
+    "T08": 35,
+    "T02": 43,
+    "T13": 25,
+    "T12": 23,
+    "T10": 7,
+    "T11": 36,
+    "T03": 10,
+    "T09": 19,
+    "T14": 36,
+    "T15": 31,
+    "T04": 8,
+    "T05": 3
+  },
+  "family_signal_body_and_topics_counts": {
+    "T05": 52,
+    "T04": 112,
+    "T03": 72
+  },
+  "auto_in_scope_with_no_title_abstract_primary_family_signal": 276,
+  "auto_in_scope_with_topic_only_primary_family_signal": 274,
+  "topic_only_primary_examples": {
+    "T03": [
+      {
+        "source_native_id": "https://openalex.org/W2890718808",
+        "title": "Machine learning based phishing detection from URLs",
+        "candidate_family": "T05",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Spam and Phishing Detection",
+          "Advanced Malware Detection Techniques",
+          "User Authentication and Security Systems"
+        ],
+        "abstract_present": false
+      },
+      {
+        "source_native_id": "https://openalex.org/W4378591002",
+        "title": "Large Language Models Are Zero-Shot Fuzzers: Fuzzing Deep-Learning Libraries via Large Language Models",
+        "candidate_family": "T01",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Software Testing and Debugging Techniques",
+          "Software Engineering Research",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W4308751002",
+        "title": "Artificial intelligence and machine learning",
+        "candidate_family": "T07",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Software Engineering Research",
+          "Data Stream Mining Techniques",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W3143398491",
+        "title": "The impact of automation and artificial intelligence on digital forensics",
+        "candidate_family": "T07",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Digital and Cyber Forensics",
+          "Advanced Malware Detection Techniques",
+          "Digital Media Forensic Detection"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W3034530016",
+        "title": "DaST: Data-Free Substitute Training for Adversarial Attacks",
+        "candidate_family": "T15",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Adversarial Robustness in Machine Learning",
+          "Generative Adversarial Networks and Image Synthesis",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W3096620731",
+        "title": "Application of Artificial Intelligence and Machine Learning in Producing Actionable Cyber Threat Intelligence",
+        "candidate_family": "T07",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Advanced Malware Detection Techniques",
+          "Digital and Cyber Forensics",
+          "Cybercrime and Law Enforcement Studies"
+        ],
+        "abstract_present": false
+      },
+      {
+        "source_native_id": "https://openalex.org/W4391241488",
+        "title": "A comprehensive analysis of the role of artificial intelligence and machine learning in modern digital forensics and incident response",
+        "candidate_family": "T11",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Digital and Cyber Forensics",
+          "Digital Media Forensic Detection",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W2800391419",
+        "title": "A machine learning based approach for phishing detection using hyperlinks information",
+        "candidate_family": "T05",
+        "auto_primary": "T03",
+        "topic_hits": [
+          "malware detection"
+        ],
+        "topics": [
+          "Spam and Phishing Detection",
+          "Advanced Malware Detection Techniques",
+          "Text and Document Classification Technologies"
+        ],
+        "abstract_present": false
+      }
+    ],
+    "T04": [
+      {
+        "source_native_id": "https://openalex.org/W2797742547",
+        "title": "Machine Learning DDoS Detection for Consumer Internet of Things Devices",
+        "candidate_family": "T06",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Anomaly Detection Techniques and Applications",
+          "Internet Traffic Analysis and Secure E-voting"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W2791879367",
+        "title": "A deep Recurrent Neural Network based approach for Internet of Things malware threat hunting",
+        "candidate_family": "T08",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Advanced Malware Detection Techniques",
+          "Network Security and Intrusion Detection",
+          "Anomaly Detection Techniques and Applications"
+        ],
+        "abstract_present": false
+      },
+      {
+        "source_native_id": "https://openalex.org/W3038955483",
+        "title": "Cybersecurity data science: an overview from machine learning perspective",
+        "candidate_family": "T06",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Information and Cyber Security",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W4297329009",
+        "title": "An ensemble deep learning model for cyber threat hunting in industrial internet of things",
+        "candidate_family": "T07",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Anomaly Detection Techniques and Applications",
+          "Smart Grid Security and Resilience"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W2929803724",
+        "title": "A Survey of Deep Learning Methods for Cyber Security",
+        "candidate_family": "T05",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Advanced Malware Detection Techniques",
+          "Internet Traffic Analysis and Secure E-voting"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W2801118360",
+        "title": "Botnet Detection in the Internet of Things using Deep Learning Approaches",
+        "candidate_family": "T06",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Advanced Malware Detection Techniques",
+          "Internet Traffic Analysis and Secure E-voting"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W4391582407",
+        "title": "Revolutionizing Cyber Threat Detection With Large Language Models: A Privacy-Preserving BERT-Based Lightweight Model for IoT/IIoT Devices",
+        "candidate_family": "T01",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Internet Traffic Analysis and Secure E-voting",
+          "Advanced Malware Detection Techniques"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W3000094279",
+        "title": "Deep learning and big data technologies for IoT security",
+        "candidate_family": "T06",
+        "auto_primary": "T04",
+        "topic_hits": [
+          "intrusion detection"
+        ],
+        "topics": [
+          "Network Security and Intrusion Detection",
+          "Advanced Malware Detection Techniques",
+          "Anomaly Detection Techniques and Applications"
+        ],
+        "abstract_present": false
+      }
+    ],
+    "T05": [
+      {
+        "source_native_id": "https://openalex.org/W3215748564",
+        "title": "Sentiment Analysis in Social Media Data for Depression Detection Using Artificial Intelligence: A Review",
+        "candidate_family": "T11",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Sentiment Analysis and Opinion Mining",
+          "Spam and Phishing Detection",
+          "Mental Health via Writing"
+        ],
+        "abstract_present": false
+      },
+      {
+        "source_native_id": "https://openalex.org/W3184796286",
+        "title": "Applying machine learning and natural language processing to detect phishing email",
+        "candidate_family": "T05",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Spam and Phishing Detection",
+          "User Authentication and Security Systems",
+          "Sentiment Analysis and Opinion Mining"
+        ],
+        "abstract_present": false
+      },
+      {
+        "source_native_id": "https://openalex.org/W4235176056",
+        "title": "A Deep Learning Model for Threat Hunting in Ethereum Blockchain",
+        "candidate_family": "T08",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Blockchain Technology Applications and Security",
+          "Spam and Phishing Detection",
+          "Cybercrime and Law Enforcement Studies"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W4392166674",
+        "title": "Cyber Threat Intelligence on Blockchain: A Systematic Literature Review",
+        "candidate_family": "T07",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Blockchain Technology Applications and Security",
+          "Cybercrime and Law Enforcement Studies",
+          "Spam and Phishing Detection"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W3100572823",
+        "title": "Semi-Supervised Cyber Threat Identification in Dark Net Markets: A Transductive and Deep Learning Approach",
+        "candidate_family": "T07",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Cybercrime and Law Enforcement Studies",
+          "Spam and Phishing Detection",
+          "Terrorism, Counterterrorism, and Political Violence"
+        ],
+        "abstract_present": true
+      },
+      {
+        "source_native_id": "https://openalex.org/W2075424814",
+        "title": "Applications of Artificial Intelligence in Machine Learning: Review and Prospect",
+        "candidate_family": "T04",
+        "auto_primary": "T05",
+        "topic_hits": [
+          "phishing detection"
+        ],
+        "topics": [
+          "Data Stream Mining Techniques",
+          "Text and Document Classification Technologies",
+          "Spam and Phishing Detection"
+        ],
+        "abstract_present": true
+      }
+    ]
+  },
+  "interpretation": [
+    "OpenAlex topics are platform-generated metadata and should not silently substitute for title/abstract evidence in semantic family classification.",
+    "A topic-only primary-family signal is a source-specific leakage risk, not automatically a wrong label; independent review is still required.",
+    "OpenAlex search may match fulltext that is not stored in the Pilot abstract, so retrieval and stored semantic evidence can legitimately disagree."
+  ]
+}
