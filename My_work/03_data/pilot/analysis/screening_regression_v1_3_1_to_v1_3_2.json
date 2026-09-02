@@ -1,0 +1,31 @@
+{
+  "n_common": 950,
+  "n_changed": 9,
+  "change_field_counts": {
+    "primary_technology_id": 6,
+    "secondary_technology_ids": 7,
+    "confidence": 4,
+    "in_scope": 1,
+    "false_positive_type": 2
+  },
+  "scope_transitions": {
+    "True->True": 7,
+    "True->False": 1,
+    "False->False": 1
+  },
+  "primary_transitions": {
+    "T02->T12": 1,
+    "T04->T12": 1,
+    "T01->T02": 3,
+    "T14->None": 1,
+    "T03->T03": 1,
+    "T02->T02": 1,
+    "None->None": 1
+  },
+  "intended_changes": [
+    "reference/arxiv feeds -> AGGREGATOR_NOT_TOOL",
+    "T02 requires strong code-level repair/patch-generation evidence",
+    "T12 expanded for vulnerability intelligence/risk/prioritization"
+  ],
+  "acceptance_guardrail": "Accept only if changes remain narrow and targeted-review consistent. This is not gold accuracy evidence."
+}
