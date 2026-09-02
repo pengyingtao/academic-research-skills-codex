@@ -25,23 +25,21 @@ jobs:
       - name: Install dependencies
         working-directory: My_work/03_data/pilot
         run: pip install -r requirements.txt
-      - name: Check OpenAlex credential
-        id: keycheck
+      - name: Determine OpenAlex access mode
+        id: mode
         shell: bash
         run: |
           if [ -n "$OPENALEX_API_KEY" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "access=API_KEY" >> "$GITHUB_OUTPUT"
           else
-            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "access=KEYLESS_BUDGETED" >> "$GITHUB_OUTPUT"
           fi
       - name: Collect formal OpenAlex Pilot
-        if: steps.keycheck.outputs.available == 'true'
         working-directory: My_work/03_data/pilot
         run: python collect_openalex.py --per-family 90 --max-total 1000
-      - name: Screen OpenAlex Pilot
-        if: steps.keycheck.outputs.available == 'true'
+      - name: Screen OpenAlex Pilot without overwriting O/V corpus
         working-directory: My_work/03_data/pilot
-        run: python screen_candidates.py output/openalex_candidates.jsonl
+        run: python screen_candidates.py output/openalex_candidates.jsonl --output openalex_screened.jsonl
       - name: Write OpenAlex status
         working-directory: My_work/03_data/pilot
         shell: bash
@@ -49,17 +47,30 @@ jobs:
           python - <<'PY'
           import json, os, pathlib, datetime
           out = pathlib.Path('output')
-          has_key = bool(os.environ.get('OPENALEX_API_KEY'))
-          status = {
+          access = 'API_KEY' if os.environ.get('OPENALEX_API_KEY') else 'KEYLESS_BUDGETED'
+          candidate_file = out / 'openalex_candidates.jsonl'
+          screened_file = out / 'openalex_screened.jsonl'
+          n = sum(1 for line in candidate_file.open(encoding='utf-8') if line.strip()) if candidate_file.exists() else 0
+          ns = sum(1 for line in screened_file.open(encoding='utf-8') if line.strip()) if screened_file.exists() else 0
+          if n >= 900:
+            status = 'COLLECTED_NEAR_TARGET'
+          elif n > 0:
+            status = 'PARTIAL_COLLECTION'
+          else:
+            status = 'FAILED_NO_RECORDS'
+          payload = {
             'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'source': 'openalex',
             'target': 1000,
             'research_cutoff': '2026-06-30',
-            'status': 'COLLECTED' if has_key else 'BLOCKED_CREDENTIAL',
-            'dependency': None if has_key else 'Repository secret OPENALEX_API_KEY is not configured.',
-            'note': 'OpenAlex free REST API requires an API key. Full public snapshot is intentionally not downloaded in Actions because it is hundreds of GB compressed.'
+            'access_mode': access,
+            'candidate_count': n,
+            'screened_count': ns,
+            'status': status,
+            'dependency': None if access == 'API_KEY' else 'No repository key configured; used official OpenAlex keyless budgeted API access.',
+            'note': 'Official OpenAlex documentation as of Aug 2026 allows basic keyless API queries with a smaller daily budget. A free key remains recommended for scale. Source-specific screening is isolated from the formal O/V pilot_screened.jsonl.'
           }
-          (out / 'openalex_pilot_status.json').write_text(json.dumps(status, indent=2), encoding='utf-8')
+          (out / 'openalex_pilot_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
           PY
       - name: Persist OpenAlex outputs/status
         run: |
@@ -69,7 +80,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No OpenAlex changes to commit.'
           else
-            git commit -m 'WP2: update OpenAlex Pilot status/data'
+            git commit -m 'WP2: collect formal OpenAlex Science Pilot'
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
