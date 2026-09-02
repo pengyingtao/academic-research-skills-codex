@@ -151,6 +151,11 @@ def screen_supply(row: dict[str, Any], q: dict[str, Any]) -> dict[str, Any]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("inputs", nargs="+", help="JSONL candidate files")
+    ap.add_argument(
+        "--output",
+        default="pilot_screened.jsonl",
+        help="Output filename under output/. Defaults to pilot_screened.jsonl for backward compatibility.",
+    )
     args = ap.parse_args()
     q = load_queries()
     out: list[dict[str, Any]] = []
@@ -170,8 +175,9 @@ def main() -> None:
             else:
                 row = screen_supply(row, q)
             out.append(row)
-    n = write_jsonl(OUT_DIR / "pilot_screened.jsonl", out)
-    print(f"wrote {n} screened records")
+    output_name = Path(args.output).name
+    n = write_jsonl(OUT_DIR / output_name, out)
+    print(f"wrote {n} screened records to {output_name}")
 
 
 if __name__ == "__main__":
