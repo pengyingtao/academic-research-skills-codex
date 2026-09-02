@@ -1,0 +1,14 @@
+{
+  "n_common_records": 950,
+  "n_changed_records": 83,
+  "change_field_counts": {
+    "in_scope": 65,
+    "primary_technology_id": 65,
+    "use_orientation": 68,
+    "false_positive_type": 83,
+    "confidence": 70,
+    "secondary_technology_ids": 18
+  },
+  "review_status": "PENDING_TARGETED_REVIEW",
+  "note": "Changed records are the highest-priority regression review set for keyword v1.2."
+}
