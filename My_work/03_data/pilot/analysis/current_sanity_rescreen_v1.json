@@ -1,36 +1,36 @@
 {
   "n": 450,
   "in_scope": {
-    "False": 277,
-    "True": 173
+    "False": 283,
+    "True": 167
   },
   "confidence": {
-    "REJECT": 252,
-    "LOW": 25,
-    "MEDIUM": 64,
-    "HIGH": 109
+    "REJECT": 257,
+    "LOW": 26,
+    "MEDIUM": 60,
+    "HIGH": 107
   },
   "false_positive_type": {
     "NO_AI_SIGNAL": 123,
-    "OFFENSIVE_ONLY": 3,
-    "GENERIC_AI": 25,
-    "NONE": 173,
+    "OFFENSIVE_ONLY": 8,
+    "GENERIC_AI": 26,
+    "NONE": 167,
     "PERSONAL_PROFILE": 113,
     "AGGREGATOR_NOT_TOOL": 8,
     "SECURITY_OF_AI": 4,
     "EDUCATIONAL_ONLY": 1
   },
   "primary_family": {
-    "NONE": 277,
-    "T01": 14,
-    "T15": 5,
-    "T10": 11,
-    "T09": 41,
+    "NONE": 283,
+    "T01": 15,
+    "T15": 4,
+    "T10": 12,
     "T14": 1,
     "T02": 7,
-    "T03": 14,
-    "T04": 21,
-    "T05": 12,
+    "T03": 16,
+    "T09": 33,
+    "T04": 19,
+    "T05": 13,
     "T06": 3,
     "T07": 11,
     "T08": 8,
