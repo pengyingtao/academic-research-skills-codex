@@ -41,23 +41,28 @@ def convert_work(w: dict[str, Any], family: str, term: str, anchor: str) -> dict
     return rec
 
 
-def fetch_query(family: str, term: str, anchor: str, start: str, end: str, limit: int) -> list[dict[str, Any]]:
-    key = env("OPENALEX_API_KEY", required=True)
+def fetch_query(family: str, term: str, anchor: str, start: str, end: str, limit: int, key: str | None) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     cursor = "*"
-    # OpenAlex `search` is full-text search, not a Boolean query language. We issue
-    # several simple family-term x AI-anchor queries and deduplicate downstream.
     search = f"{term} {anchor}"
     while len(rows) < limit:
-        params = {
-            "api_key": key,
+        params: dict[str, Any] = {
             "search": search,
             "filter": f"from_publication_date:{start},to_publication_date:{end}",
-            "per-page": min(50, limit - len(rows)),
+            "per_page": min(100, limit - len(rows)),
             "cursor": cursor,
             "select": "id,doi,title,publication_date,primary_location,topics,authorships,cited_by_count,referenced_works,abstract_inverted_index",
         }
-        data = request_json("GET", API, params=params, min_interval=0.15)
+        if key:
+            params["api_key"] = key
+        try:
+            data = request_json("GET", API, params=params, min_interval=0.20 if key else 0.35)
+        except RuntimeError as exc:
+            # Keyless OpenAlex access has a smaller daily budget. Preserve any
+            # records already collected and let the workflow mark a partial run
+            # rather than losing the entire Science Pilot attempt.
+            print(f"OpenAlex query stopped after budget/network error for {family}/{term}/{anchor}: {exc}")
+            break
         results = data.get("results", [])
         if not results:
             break
@@ -68,14 +73,14 @@ def fetch_query(family: str, term: str, anchor: str, start: str, end: str, limit
     return rows[:limit]
 
 
-def fetch_family(family: str, terms: list[str], start: str, end: str, limit: int) -> list[dict[str, Any]]:
+def fetch_family(family: str, terms: list[str], start: str, end: str, limit: int, key: str | None) -> list[dict[str, Any]]:
     rows: dict[str, dict[str, Any]] = {}
     per_query = max(5, min(20, limit))
     for term in terms:
         for anchor in AI_ANCHORS:
             if len(rows) >= limit:
                 break
-            for rec in fetch_query(family, term, anchor, start, end, min(per_query, limit - len(rows))):
+            for rec in fetch_query(family, term, anchor, start, end, min(per_query, limit - len(rows)), key):
                 rows.setdefault(rec["source_native_id"], rec)
         if len(rows) >= limit:
             break
@@ -89,15 +94,26 @@ def main() -> None:
     args = ap.parse_args()
     q = load_queries()
     start, end = q["window"]["from"], q["window"]["to"]
+    key = env("OPENALEX_API_KEY")
+    mode = "API_KEY" if key else "KEYLESS_BUDGETED"
+    print(f"OpenAlex access mode: {mode}")
+
     all_rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for family, cfg in q["families"].items():
         remaining = args.max_total - len(all_rows)
         if remaining <= 0:
             break
-        all_rows.extend(fetch_family(family, cfg["terms"], start, end, min(args.per_family, remaining)))
-    dedup = {r["source_native_id"]: r for r in all_rows}
-    n = write_jsonl(OUT_DIR / "openalex_candidates.jsonl", dedup.values())
-    print(f"wrote {n} OpenAlex candidates")
+        family_rows = fetch_family(family, cfg["terms"], start, end, min(args.per_family, remaining), key)
+        for rec in family_rows:
+            native_id = rec["source_native_id"]
+            if native_id not in seen:
+                seen.add(native_id)
+                all_rows.append(rec)
+                if len(all_rows) >= args.max_total:
+                    break
+    n = write_jsonl(OUT_DIR / "openalex_candidates.jsonl", all_rows)
+    print(f"wrote {n} OpenAlex candidates using {mode}")
 
 
 if __name__ == "__main__":
