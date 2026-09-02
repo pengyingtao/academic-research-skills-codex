@@ -6,7 +6,7 @@ from collect_github import build_search_query
 from collect_nvd import weakness_group
 from collect_patents_bulk import compile_family_patterns, normalize_date
 from common import load_queries
-from screen_candidates import screen_supply
+from screen_candidates import has_soc_context, screen_supply
 
 
 class PilotLogicTests(unittest.TestCase):
@@ -83,6 +83,18 @@ class PilotLogicTests(unittest.TestCase):
         out = screen_supply(row, self.q)
         self.assertTrue(out["in_scope"])
         self.assertEqual(out["primary_technology_id"], "T09")
+
+    def test_soc_context_uses_word_boundary(self) -> None:
+        self.assertFalse(has_soc_context("AI system with associated security controls and autonomous monitoring"))
+        self.assertTrue(has_soc_context("AI SOC agent for incident triage"))
+        self.assertTrue(has_soc_context("autonomous security operations center platform"))
+
+    def test_non_soc_autonomous_defense_not_forced_to_t09(self) -> None:
+        row = {"source_type":"open_source","source_native_id":"org/ips","title_or_name":"AI Intrusion Prevention","text_evidence":"AI-driven intrusion detection and network anomaly detection using unsupervised machine learning. Autonomous mitigation is associated with firewall controls.","topics":[],"artifact_type":"tool_framework","analysis_role":"ENGINEERING_SUPPLY"}
+        out = screen_supply(row, self.q)
+        self.assertTrue(out["in_scope"])
+        self.assertNotEqual(out["primary_technology_id"], "T09")
+        self.assertEqual(out["primary_technology_id"], "T04")
 
     def test_security_of_ai_is_excluded(self) -> None:
         row = {"source_type":"open_source","source_native_id":"org/repo","title_or_name":"LLM jailbreak detection","text_evidence":"large language model jailbreak detection for prompt injection defense","topics":[]}
