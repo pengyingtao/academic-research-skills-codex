@@ -1,0 +1,53 @@
+name: WP2 Blinded Gold Evaluator Dry Run
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-gold-eval-dryrun.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run blinded merge/evaluation dry run
+        working-directory: My_work/03_data/pilot
+        run: |
+          python evaluate_gold.py \
+            --blind-csv output/human_review_blind_300.csv \
+            --prediction-map output/human_review_prediction_map_300.jsonl \
+            --out output/gate2b_gold_metrics_dryrun.json
+      - name: Assert incomplete gold guardrail
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import json
+          p = json.load(open('output/gate2b_gold_metrics_dryrun.json', encoding='utf-8'))
+          assert p['merge_diagnostics']['n_merged_rows'] == 300
+          assert p['merge_diagnostics']['review_id_match'] is True
+          assert p['merge_diagnostics']['screening_version'] == '1.3.2'
+          assert p['n_finalized_gold'] == 0
+          assert p['evaluation_status'] == 'INCOMPLETE_GOLD_DO_NOT_USE_AS_GATE_RESULT'
+          assert p['gate_partial_pass'] is False
+          PY
+      - name: Commit dry-run evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/gate2b_gold_metrics_dryrun.json
+          if git diff --cached --quiet; then echo 'No dry-run changes'; else
+            git commit -m 'WP2: validate blinded gold evaluation pipeline'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
