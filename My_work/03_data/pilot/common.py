@@ -89,7 +89,7 @@ def base_record(source_type: str, native_id: str, *, title: str = "", text: str 
         "retrieval_query_id": query_id,
         "retrieved_by_terms": [],
         "taxonomy_version": "1.1",
-        "keyword_version": "1.3.1",
+        "keyword_version": "1.3.2",
         "in_scope": None,
         "confidence": None,
         "screening_reason": None,
