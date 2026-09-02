@@ -25,29 +25,37 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import datetime, json, pathlib, requests, time
-          url='https://api.openalex.org/works'
+          import datetime, json, pathlib, time, urllib.parse, urllib.request, urllib.error
+          base='https://api.openalex.org/works'
           params={
               'search':'machine learning cybersecurity',
               'filter':'from_publication_date:2012-01-01,to_publication_date:2026-06-30',
               'per_page':1,
               'select':'id,title,publication_date'
           }
+          url=base+'?'+urllib.parse.urlencode(params)
           t=time.time()
           status='ERROR'
           http_status=None
           error=None
           n=0
           try:
-              r=requests.get(url,params=params,timeout=15)
-              http_status=r.status_code
-              if r.ok:
-                  data=r.json(); n=len(data.get('results',[])); status='PASS' if n else 'PASS_EMPTY'
-              else:
-                  error=(r.text or '')[:500]
-                  status='HTTP_ERROR'
+              req=urllib.request.Request(url,headers={'User-Agent':'academic-research-pilot/1.0'})
+              with urllib.request.urlopen(req,timeout=15) as r:
+                  http_status=getattr(r,'status',200)
+                  data=json.loads(r.read().decode('utf-8'))
+                  n=len(data.get('results',[]))
+                  status='PASS' if n else 'PASS_EMPTY'
+          except urllib.error.HTTPError as exc:
+              http_status=exc.code
+              try:
+                  error=exc.read().decode('utf-8',errors='replace')[:500]
+              except Exception:
+                  error=repr(exc)
+              status='HTTP_ERROR'
           except Exception as exc:
-              error=repr(exc); status='EXCEPTION'
+              error=repr(exc)
+              status='EXCEPTION'
           payload={
               'run_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'status':status,
