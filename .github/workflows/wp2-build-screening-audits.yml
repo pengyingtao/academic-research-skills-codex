@@ -1,0 +1,43 @@
+name: WP2 Build Screening Audit Samples
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-build-screening-audits.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Build stratified screening audits
+        working-directory: My_work/03_data/pilot
+        run: python build_screening_audit_samples.py --false-negative-n 60 --false-positive-n 60
+      - name: Commit audit samples
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/centrality_false_negative_audit.jsonl \
+                  My_work/03_data/pilot/output/centrality_false_negative_audit.csv \
+                  My_work/03_data/pilot/output/in_scope_false_positive_audit.jsonl \
+                  My_work/03_data/pilot/output/in_scope_false_positive_audit.csv \
+                  My_work/03_data/pilot/output/screening_audit_summary.json
+          if git diff --cached --quiet; then echo 'No audit changes'; else
+            git commit -m 'WP2: build stratified screening audit samples'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
