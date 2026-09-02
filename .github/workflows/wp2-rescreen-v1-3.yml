@@ -1,0 +1,97 @@
+name: WP2 Rescreen Keyword V1.3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/wp2-rescreen-v1-3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rescreen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: My_work/03_data/pilot
+        run: pip install -r requirements.txt
+      - name: Run v1.3 regression tests
+        working-directory: My_work/03_data/pilot
+        run: python -m unittest -v test_pilot_logic.py
+      - name: Rescreen existing formal O/V corpus
+        working-directory: My_work/03_data/pilot
+        run: python screen_candidates.py output/github_candidates.jsonl output/vdp_at_2026-06-30.jsonl
+      - name: Summarize v1.3 screening
+        working-directory: My_work/03_data/pilot
+        run: |
+          python summarize_pilot.py --input output/pilot_screened.jsonl --out output/pilot_summary.json
+          cp output/pilot_summary.json analysis/pilot_summary_keyword_v1_3.json
+      - name: Rebuild review queue
+        working-directory: My_work/03_data/pilot
+        run: python build_review_queue.py --input output/pilot_screened.jsonl --n 300
+      - name: Compare v1.2 and v1.3 summaries
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path('analysis/pilot_summary_keyword_v1_2.json').read_text())
+          b = json.loads(Path('analysis/pilot_summary_keyword_v1_3.json').read_text())
+          def diff_map(key):
+              aa, bb = a.get(key, {}), b.get(key, {})
+              keys = sorted(set(aa) | set(bb))
+              return {k: {'v1_2': aa.get(k,0), 'v1_3': bb.get(k,0), 'delta': bb.get(k,0)-aa.get(k,0)} for k in keys}
+          report = {
+              'n_v1_2': a.get('n'), 'n_v1_3': b.get('n'),
+              'scope': diff_map('by_scope'),
+              'confidence': diff_map('by_confidence'),
+              'false_positive': diff_map('by_false_positive'),
+              'primary_family': diff_map('by_primary_family'),
+              'interpretation_guardrail': 'Screening regression only; final accuracy requires independent human gold labels.'
+          }
+          Path('analysis/screening_regression_v1_2_to_v1_3.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+          PY
+      - name: Write metadata
+        working-directory: My_work/03_data/pilot
+        run: |
+          python - <<'PY'
+          import json, datetime
+          from pathlib import Path
+          meta = {
+            'run_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'mode': 'RESCREEN_EXISTING_FORMAL_CORPUS',
+            'taxonomy_version': '1.1',
+            'keyword_version': '1.3',
+            'external_api_calls': False,
+            'changes': ['GitHub AI centrality gate', 'expanded profile/catalog exclusions', 'T09 SOC-agent priority'],
+            'note': 'Regression-only rescreen after targeted AI prereview batch 01.'
+          }
+          Path('analysis/rescreen_v1_3_metadata.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
+          PY
+      - name: Commit v1.3 outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add My_work/03_data/pilot/output/pilot_screened.jsonl \
+                  My_work/03_data/pilot/output/pilot_summary.json \
+                  My_work/03_data/pilot/output/manual_review_queue_compact.jsonl \
+                  My_work/03_data/pilot/output/manual_review_queue_compact.csv \
+                  My_work/03_data/pilot/analysis/pilot_summary_keyword_v1_3.json \
+                  My_work/03_data/pilot/analysis/screening_regression_v1_2_to_v1_3.json \
+                  My_work/03_data/pilot/analysis/rescreen_v1_3_metadata.json
+          if git diff --cached --quiet; then
+            echo 'No v1.3 changes.'
+          else
+            git commit -m 'WP2: rescreen formal Pilot with keyword v1.3'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
