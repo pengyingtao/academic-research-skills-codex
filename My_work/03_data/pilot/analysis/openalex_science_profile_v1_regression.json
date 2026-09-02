@@ -1,0 +1,48 @@
+{
+  "n_common": 1000,
+  "n_changed": 413,
+  "scope_transitions": {
+    "False->False": 406,
+    "True->True": 486,
+    "True->False": 107,
+    "False->True": 1
+  },
+  "global_primary_family": {
+    "NONE": 407,
+    "T04": 309,
+    "T03": 99,
+    "T13": 12,
+    "T11": 14,
+    "T05": 34,
+    "T01": 57,
+    "T10": 5,
+    "T12": 4,
+    "T14": 9,
+    "T15": 13,
+    "T02": 14,
+    "T07": 8,
+    "T08": 1,
+    "T09": 14
+  },
+  "science_profile_primary_family": {
+    "NONE": 513,
+    "T14": 23,
+    "T03": 64,
+    "T05": 49,
+    "T13": 20,
+    "T11": 25,
+    "T06": 35,
+    "T01": 52,
+    "T04": 110,
+    "T10": 5,
+    "T07": 30,
+    "T08": 17,
+    "T12": 11,
+    "T15": 17,
+    "T02": 14,
+    "T09": 15
+  },
+  "profile": "SCIENCE_TITLE_ABSTRACT_V1",
+  "change_reason": "OpenAlex topics removed from semantic family evidence; academic punctuation normalized.",
+  "guardrail": "Regression of evidence channels only; human gold still required before freeze."
+}
